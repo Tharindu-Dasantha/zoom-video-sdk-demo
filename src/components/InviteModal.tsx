@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Loader2, Mail, X, CheckCircle2, AlertCircle, UserPlus } from "lucide-react";
 
@@ -108,33 +107,33 @@ export default function InviteModal({
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
     >
-      <div className="w-full max-w-md rounded-xl border bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md rounded-2xl bg-[#292a2d] border border-[#3c4043] shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-6 py-4">
+        <div className="flex items-center justify-between border-b border-[#3c4043] px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <UserPlus className="h-4 w-4 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#8ab4f8]/10">
+              <UserPlus className="h-4 w-4 text-[#8ab4f8]" />
             </div>
             <div>
-              <h2 className="text-base font-semibold">Invite to Session</h2>
-              <p className="text-xs text-muted-foreground">
-                Send an email invite to join{" "}
-                <span className="font-mono font-medium text-foreground">
+              <h2 className="text-base font-medium text-white">
+                Invite people
+              </h2>
+              <p className="text-xs text-[#9aa0a6]">
+                Session:{" "}
+                <span className="font-mono font-medium text-[#8ab4f8]">
                   {sessionName}
                 </span>
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
             onClick={onClose}
-            className="h-8 w-8 rounded-full"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9aa0a6] hover:bg-[#3c4043] transition-colors"
           >
             <X className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
 
         {/* Body */}
@@ -147,29 +146,29 @@ export default function InviteModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isSending}
-              className="flex-1"
+              className="flex-1 bg-[#202124] border-[#3c4043] text-white placeholder:text-[#5f6368] focus-visible:ring-[#8ab4f8]"
               required
             />
-            <Button
+            <button
               type="submit"
               disabled={!email.trim() || isSending}
-              className="shrink-0"
+              className="flex items-center gap-1.5 rounded-full bg-[#8ab4f8] text-[#202124] px-4 py-2 text-sm font-medium hover:bg-[#aecbfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             >
               {isSending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  <Mail className="mr-1.5 h-4 w-4" />
+                  <Mail className="h-4 w-4" />
                   Send
                 </>
               )}
-            </Button>
+            </button>
           </form>
 
           {/* Sent invites list */}
           {sentInvites.length > 0 && (
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <p className="text-xs font-medium text-[#9aa0a6] uppercase tracking-wider">
                 Sent Invitations
               </p>
               {sentInvites.map((invite, i) => (
@@ -177,8 +176,8 @@ export default function InviteModal({
                   key={`${invite.email}-${i}`}
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
                     invite.status === "success"
-                      ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                      : "bg-destructive/10 text-destructive"
+                      ? "bg-green-500/10 text-green-400"
+                      : "bg-red-500/10 text-red-400"
                   }`}
                 >
                   {invite.status === "success" ? (
@@ -197,8 +196,8 @@ export default function InviteModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t px-6 py-3">
-          <p className="text-xs text-muted-foreground text-center">
+        <div className="border-t border-[#3c4043] px-6 py-3">
+          <p className="text-xs text-[#5f6368] text-center">
             An email with the session link will be sent to the recipient
           </p>
         </div>

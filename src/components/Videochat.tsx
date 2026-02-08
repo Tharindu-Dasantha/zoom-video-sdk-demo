@@ -1,89 +1,222 @@
 "use client";
 
-import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
-import ZoomVideo, { VideoQuality, type VideoPlayer, type VideoClient } from "@zoom/videosdk";
-import { CameraButton, MicButton } from "./MuteButtons";
-import { LogOut, Loader2, Video, UserPlus } from "lucide-react";
-import { Button } from "./ui/button";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ZoomVideo, {
+  VideoQuality,
+  type VideoPlayer,
+  type VideoClient,
+  type Participant,
+} from "@zoom/videosdk";
+import {
+  LogOut,
+  Loader2,
+  Video,
+  UserPlus,
+  Mic,
+  MicOff,
+  VideoOff,
+  Users,
+} from "lucide-react";
 import InviteModal from "./InviteModal";
 
-// Create client once at module level — NOT inside the component
+// Create client once at module level
 const client: typeof VideoClient = ZoomVideo.createClient();
 
-const Videochat = (props: { slug: string; JWT: string }) => {
-  const { slug: session, JWT: jwt } = props;
+// Avatar background colors
+const AVATAR_COLORS = [
+  "#1e88e5", "#e53935", "#43a047", "#fb8c00",
+  "#8e24aa", "#00acc1", "#3949ab", "#d81b60",
+  "#00897b", "#6d4c41", "#546e7a", "#7cb342",
+];
+
+function getAvatarColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+interface ParticipantTileProps {
+  participant: Participant;
+  isSelf: boolean;
+  videoRef?: React.RefObject<HTMLDivElement | null>;
+}
+
+function ParticipantTile({ participant, isSelf, videoRef }: ParticipantTileProps) {
+  const displayName = participant.displayName || "Guest";
+  const hasVideo = participant.bVideoOn;
+  const isMuted = participant.muted;
+  const color = getAvatarColor(displayName);
+
+  return (
+    <div className="relative flex items-center justify-center rounded-xl bg-[#3c4043] overflow-hidden aspect-video">
+      {/* Video element container (SDK attaches video here) */}
+      {hasVideo && isSelf && (
+        <div
+          ref={videoRef}
+          className="absolute inset-0 [&>video-player]:w-full [&>video-player]:h-full [&>video-player]:object-cover"
+        />
+      )}
+      {hasVideo && !isSelf && (
+        <div
+          ref={videoRef}
+          className="absolute inset-0 [&>video-player]:w-full [&>video-player]:h-full [&>video-player]:object-cover"
+        />
+      )}
+
+      {/* Avatar fallback when video is off */}
+      {!hasVideo && (
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className="flex h-20 w-20 items-center justify-center rounded-full text-2xl font-medium text-white"
+            style={{ backgroundColor: color }}
+          >
+            {getInitials(displayName)}
+          </div>
+        </div>
+      )}
+
+      {/* Bottom bar: name + mic status */}
+      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 bg-gradient-to-t from-black/70 to-transparent px-3 py-2.5">
+        {isMuted && (
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500/90">
+            <MicOff className="h-3 w-3 text-white" />
+          </div>
+        )}
+        <span className="truncate text-sm text-white font-medium">
+          {displayName}
+          {isSelf && " (You)"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
+  const { slug: session, JWT: jwt, userName } = props;
   const [inSession, setInSession] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
 
-  const renderVideo = useCallback(
-    async (event: { action: "Start" | "Stop"; userId: number }) => {
+  // Track video element refs per user
+  const videoRefsMap = useRef<Map<number, HTMLDivElement>>(new Map());
+  const selfVideoRef = useRef<HTMLDivElement | null>(null);
+
+  const refreshParticipants = useCallback(() => {
+    try {
+      const users = client.getAllUser();
+      setParticipants([...users]);
+    } catch {
+      // not in session yet
+    }
+  }, []);
+
+  const attachVideoToTile = useCallback(
+    async (userId: number) => {
       try {
         const mediaStream = client.getMediaStream();
-        if (event.action === "Stop") {
-          const element = await mediaStream.detachVideo(event.userId);
-          if (Array.isArray(element)) {
-            element.forEach((el) => el.remove());
-          } else {
-            element?.remove();
-          }
-        } else {
-          const userVideo = await mediaStream.attachVideo(
-            event.userId,
-            VideoQuality.Video_360P
-          );
-          videoContainerRef.current?.appendChild(userVideo as VideoPlayer);
+        const userVideo = await mediaStream.attachVideo(
+          userId,
+          VideoQuality.Video_360P
+        );
+
+        const currentUser = client.getCurrentUserInfo();
+        const isSelf = currentUser?.userId === userId;
+        const container = isSelf
+          ? selfVideoRef.current
+          : videoRefsMap.current.get(userId);
+
+        if (container) {
+          // Clear existing video elements
+          container.innerHTML = "";
+          container.appendChild(userVideo as VideoPlayer);
         }
       } catch (e) {
-        console.error(
-          "Error rendering video:",
-          e instanceof Error ? e.message : String(e)
-        );
+        console.error("Error attaching video:", e instanceof Error ? e.message : String(e));
       }
     },
     []
   );
+
+  const detachVideoFromTile = useCallback(async (userId: number) => {
+    try {
+      const mediaStream = client.getMediaStream();
+      const element = await mediaStream.detachVideo(userId);
+      if (Array.isArray(element)) {
+        element.forEach((el) => el.remove());
+      } else {
+        element?.remove();
+      }
+    } catch (e) {
+      console.error("Error detaching video:", e instanceof Error ? e.message : String(e));
+    }
+  }, []);
 
   const joinSession = async () => {
     setIsLoading(true);
     setError(null);
     try {
       await client.init("en-US", "Global", { patchJsMedia: true });
-      client.on("peer-video-state-change", renderVideo);
+
+      // Listen for participant changes
+      client.on(
+        "peer-video-state-change",
+        (payload: { action: "Start" | "Stop"; userId: number }) => {
+          if (payload.action === "Start") {
+            attachVideoToTile(payload.userId);
+          } else {
+            detachVideoFromTile(payload.userId);
+          }
+          refreshParticipants();
+        }
+      );
+      client.on("user-added", () => refreshParticipants());
+      client.on("user-removed", () => refreshParticipants());
+      client.on("user-updated", () => refreshParticipants());
+
       await client.join(session, jwt, userName);
       setInSession(true);
+      refreshParticipants();
 
       const mediaStream = client.getMediaStream();
 
-      // Start audio — may fail if no mic permission
+      // Start audio
       try {
         await mediaStream.startAudio();
         setIsAudioMuted(mediaStream.isAudioMuted());
       } catch (audioErr) {
-        console.warn(
-          "Could not start audio:",
-          audioErr instanceof Error ? audioErr.message : String(audioErr)
-        );
+        console.warn("Could not start audio:", audioErr instanceof Error ? audioErr.message : String(audioErr));
         setIsAudioMuted(true);
       }
 
-      // Start video — may fail if no camera permission
+      // Start video
       try {
         await mediaStream.startVideo();
-        setIsVideoMuted(!mediaStream.isCapturingVideo());
-        await renderVideo({
-          action: "Start",
-          userId: client.getCurrentUserInfo().userId,
-        });
+        const capturing = mediaStream.isCapturingVideo();
+        setIsVideoMuted(!capturing);
+        if (capturing) {
+          // Short delay for DOM to render the tile
+          setTimeout(() => {
+            attachVideoToTile(client.getCurrentUserInfo().userId);
+            refreshParticipants();
+          }, 300);
+        }
       } catch (videoErr) {
-        console.warn(
-          "Could not start video:",
-          videoErr instanceof Error ? videoErr.message : String(videoErr)
-        );
+        console.warn("Could not start video:", videoErr instanceof Error ? videoErr.message : String(videoErr));
         setIsVideoMuted(true);
       }
     } catch (e) {
@@ -96,15 +229,51 @@ const Videochat = (props: { slug: string; JWT: string }) => {
     }
   };
 
+  const toggleVideo = async () => {
+    try {
+      const mediaStream = client.getMediaStream();
+      const userId = client.getCurrentUserInfo().userId;
+      if (isVideoMuted) {
+        await mediaStream.startVideo();
+        setIsVideoMuted(false);
+        setTimeout(() => {
+          attachVideoToTile(userId);
+          refreshParticipants();
+        }, 200);
+      } else {
+        await mediaStream.stopVideo();
+        setIsVideoMuted(true);
+        await detachVideoFromTile(userId);
+        refreshParticipants();
+      }
+    } catch (e) {
+      console.error("Error toggling video:", e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const toggleAudio = async () => {
+    try {
+      const mediaStream = client.getMediaStream();
+      if (isAudioMuted) {
+        await mediaStream.unmuteAudio();
+      } else {
+        await mediaStream.muteAudio();
+      }
+      setIsAudioMuted(client.getCurrentUserInfo()?.muted ?? true);
+    } catch (e) {
+      console.error("Error toggling audio:", e instanceof Error ? e.message : String(e));
+    }
+  };
+
   const leaveSession = async () => {
     try {
-      client.off("peer-video-state-change", renderVideo);
+      client.off("peer-video-state-change", () => {});
+      client.off("user-added", () => {});
+      client.off("user-removed", () => {});
+      client.off("user-updated", () => {});
       await client.leave();
     } catch (e) {
-      console.warn(
-        "Error leaving session:",
-        e instanceof Error ? e.message : String(e)
-      );
+      console.warn("Error leaving session:", e instanceof Error ? e.message : String(e));
     } finally {
       window.location.href = "/";
     }
@@ -114,114 +283,179 @@ const Videochat = (props: { slug: string; JWT: string }) => {
   useEffect(() => {
     return () => {
       if (inSession) {
-        client.off("peer-video-state-change", renderVideo);
         client.leave().catch(() => {});
       }
     };
-  }, [inSession, renderVideo]);
+  }, [inSession]);
+
+  // Grid columns based on participant count
+  const getGridClass = () => {
+    const count = participants.length;
+    if (count <= 1) return "grid-cols-1 max-w-2xl";
+    if (count === 2) return "grid-cols-2 max-w-4xl";
+    if (count <= 4) return "grid-cols-2 max-w-5xl";
+    if (count <= 6) return "grid-cols-3 max-w-6xl";
+    return "grid-cols-4 max-w-7xl";
+  };
+
+  const currentUserId = inSession
+    ? client.getCurrentUserInfo()?.userId
+    : undefined;
 
   return (
-    <div className="flex h-full w-full flex-1 flex-col">
-      {/* Header */}
-      <div className="text-center mb-4">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Jenis Akkage App Eka
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Session:{" "}
-          <span className="font-mono font-semibold text-foreground">
-            {session}
+    <div className="flex h-screen w-full flex-col bg-[#202124]">
+      {/* Top bar */}
+      <header className="flex items-center justify-between px-4 py-2 bg-[#202124] border-b border-[#3c4043]/50">
+        <div className="flex items-center gap-3">
+          <span className="text-base font-medium text-white">
+            Jenis Akkage App Eka
           </span>
-        </p>
-      </div>
+          <span className="h-4 w-px bg-[#3c4043]" />
+          <span className="text-sm text-[#9aa0a6]">{session}</span>
+        </div>
+        {inSession && (
+          <div className="flex items-center gap-2 text-sm text-[#9aa0a6]">
+            <Users className="h-4 w-4" />
+            <span>{participants.length}</span>
+          </div>
+        )}
+      </header>
 
       {/* Error display */}
       {error && (
-        <div className="mx-auto mb-4 max-w-md rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-center">
-          <p className="text-sm text-destructive">{error}</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-2"
+        <div className="mx-4 mt-3 rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-center">
+          <p className="text-sm text-red-400">{error}</p>
+          <button
+            className="mt-2 text-xs text-[#8ab4f8] hover:underline"
             onClick={() => setError(null)}
           >
             Dismiss
-          </Button>
+          </button>
         </div>
       )}
 
-      {/* Video area (hidden until session joined) */}
-      <div
-        className="flex w-full flex-1"
-        style={inSession ? {} : { display: "none" }}
-      >
-        {/* @ts-expect-error html component */}
-        <video-player-container
-          ref={videoContainerRef}
-          style={videoPlayerStyle}
-        />
-      </div>
-
-      {!inSession ? (
-        /* Join screen */
-        <div className="mx-auto flex w-80 flex-col items-center self-center gap-4 rounded-xl border bg-card p-8 shadow-lg">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-            <Video className="h-7 w-7 text-primary" />
+      {/* Main content area */}
+      <main className="flex flex-1 items-center justify-center overflow-hidden p-4">
+        {!inSession ? (
+          /* Pre-join screen */
+          <div className="flex flex-col items-center gap-6 rounded-2xl bg-[#292a2d] border border-[#3c4043] p-10 shadow-xl max-w-sm w-full">
+            {/* Preview avatar */}
+            <div
+              className="flex h-24 w-24 items-center justify-center rounded-full text-3xl font-medium text-white"
+              style={{ backgroundColor: getAvatarColor(userName) }}
+            >
+              {getInitials(userName)}
+            </div>
+            <div className="text-center">
+              <p className="text-lg text-white font-medium">{userName}</p>
+              <p className="text-sm text-[#9aa0a6] mt-1">Ready to join?</p>
+            </div>
+            <button
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-[#8ab4f8] px-6 py-3 text-sm font-medium text-[#202124] hover:bg-[#aecbfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={joinSession}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Joining...
+                </>
+              ) : (
+                <>
+                  <Video className="h-4 w-4" />
+                  Join now
+                </>
+              )}
+            </button>
           </div>
-          <p className="text-sm text-muted-foreground text-center">
-            Ready to join? Click below to enter the video session.
-          </p>
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={joinSession}
-            disabled={isLoading}
+        ) : (
+          /* Participant grid */
+          <div
+            className={`mx-auto grid w-full gap-3 ${getGridClass()}`}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Joining...
-              </>
-            ) : (
-              "Join Session"
-            )}
-          </Button>
-        </div>
-      ) : (
-        /* In-session controls */
-        <div className="flex w-full flex-col justify-around self-center">
-          <div className="mt-4 flex w-full max-w-md flex-1 items-center justify-around self-center rounded-xl border bg-card p-4 shadow-lg">
-            <CameraButton
-              client={client}
-              isVideoMuted={isVideoMuted}
-              setIsVideoMuted={setIsVideoMuted}
-              renderVideo={renderVideo}
-            />
-            <MicButton
-              isAudioMuted={isAudioMuted}
-              client={client}
-              setIsAudioMuted={setIsAudioMuted}
-            />
-            <Button
-              onClick={() => setIsInviteOpen(true)}
-              variant="outline"
-              size="icon"
-              title="Invite via email"
-              className="rounded-full h-12 w-12"
-            >
-              <UserPlus className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={leaveSession}
-              variant="destructive"
-              size="icon"
-              title="Leave session"
-              className="rounded-full h-12 w-12"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+            {participants.map((participant) => {
+              const isSelf = participant.userId === currentUserId;
+              return (
+                <ParticipantTile
+                  key={participant.userId}
+                  participant={participant}
+                  isSelf={isSelf}
+                  videoRef={
+                    isSelf
+                      ? selfVideoRef
+                      : {
+                          current: videoRefsMap.current.get(
+                            participant.userId
+                          ) ?? null,
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        } as any
+                  }
+                />
+              );
+            })}
           </div>
-        </div>
+        )}
+      </main>
+
+      {/* Bottom control bar — Google Meet style */}
+      {inSession && (
+        <footer className="flex items-center justify-center gap-3 px-4 py-4 bg-[#202124] border-t border-[#3c4043]/50">
+          {/* Mic toggle */}
+          <button
+            onClick={toggleAudio}
+            title={isAudioMuted ? "Unmute microphone" : "Mute microphone"}
+            className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+              isAudioMuted
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "bg-[#3c4043] hover:bg-[#4a4d51] text-white"
+            }`}
+          >
+            {isAudioMuted ? (
+              <MicOff className="h-5 w-5" />
+            ) : (
+              <Mic className="h-5 w-5" />
+            )}
+          </button>
+
+          {/* Camera toggle */}
+          <button
+            onClick={toggleVideo}
+            title={isVideoMuted ? "Turn on camera" : "Turn off camera"}
+            className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+              isVideoMuted
+                ? "bg-red-500 hover:bg-red-600 text-white"
+                : "bg-[#3c4043] hover:bg-[#4a4d51] text-white"
+            }`}
+          >
+            {isVideoMuted ? (
+              <VideoOff className="h-5 w-5" />
+            ) : (
+              <Video className="h-5 w-5" />
+            )}
+          </button>
+
+          {/* Invite */}
+          <button
+            onClick={() => setIsInviteOpen(true)}
+            title="Invite via email"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#3c4043] hover:bg-[#4a4d51] text-white transition-colors"
+          >
+            <UserPlus className="h-5 w-5" />
+          </button>
+
+          {/* Separator */}
+          <div className="mx-2 h-8 w-px bg-[#3c4043]" />
+
+          {/* Leave call */}
+          <button
+            onClick={leaveSession}
+            title="Leave call"
+            className="flex h-12 items-center gap-2 rounded-full bg-red-500 hover:bg-red-600 px-5 text-white text-sm font-medium transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            Leave
+          </button>
+        </footer>
       )}
 
       {/* Invite Modal */}
@@ -235,16 +469,3 @@ const Videochat = (props: { slug: string; JWT: string }) => {
 };
 
 export default Videochat;
-
-const videoPlayerStyle = {
-  height: "75vh",
-  marginTop: "1.5rem",
-  marginLeft: "3rem",
-  marginRight: "3rem",
-  alignContent: "center",
-  borderRadius: "10px",
-  overflow: "hidden",
-  backgroundColor: "hsl(222.2 84% 4.9%)",
-} as CSSProperties;
-
-const userName = `User-${Date.now().toString().slice(-4)}`;
