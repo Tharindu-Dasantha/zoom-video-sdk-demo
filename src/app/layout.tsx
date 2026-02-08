@@ -8,8 +8,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Zoom VideoSDK",
-  description: "Zoom x Next.js",
+  title: "jenis akkage app eka",
+  description: "Video calling app powered by Zoom Video SDK",
   icons: {
     icon: "/favicon.svg",
   },
@@ -22,7 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen bg-background antialiased">
+        {children}
+      </body>
     </html>
   );
 }
