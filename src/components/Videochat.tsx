@@ -3,8 +3,9 @@
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import ZoomVideo, { VideoQuality, type VideoPlayer, type VideoClient } from "@zoom/videosdk";
 import { CameraButton, MicButton } from "./MuteButtons";
-import { LogOut, Loader2, Video } from "lucide-react";
+import { LogOut, Loader2, Video, UserPlus } from "lucide-react";
 import { Button } from "./ui/button";
+import InviteModal from "./InviteModal";
 
 // Create client once at module level — NOT inside the component
 const client: typeof VideoClient = ZoomVideo.createClient();
@@ -16,6 +17,7 @@ const Videochat = (props: { slug: string; JWT: string }) => {
   const [error, setError] = useState<string | null>(null);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
   const videoContainerRef = useRef<HTMLDivElement>(null);
 
   const renderVideo = useCallback(
@@ -201,6 +203,15 @@ const Videochat = (props: { slug: string; JWT: string }) => {
               setIsAudioMuted={setIsAudioMuted}
             />
             <Button
+              onClick={() => setIsInviteOpen(true)}
+              variant="outline"
+              size="icon"
+              title="Invite via email"
+              className="rounded-full h-12 w-12"
+            >
+              <UserPlus className="h-5 w-5" />
+            </Button>
+            <Button
               onClick={leaveSession}
               variant="destructive"
               size="icon"
@@ -212,6 +223,13 @@ const Videochat = (props: { slug: string; JWT: string }) => {
           </div>
         </div>
       )}
+
+      {/* Invite Modal */}
+      <InviteModal
+        sessionName={session}
+        isOpen={isInviteOpen}
+        onClose={() => setIsInviteOpen(false)}
+      />
     </div>
   );
 };
