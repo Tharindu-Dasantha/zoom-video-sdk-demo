@@ -27,7 +27,7 @@ export default function Home() {
             <Video className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight">
-            jenis akkage app eka
+            Jenis Akkage App Eka
           </h1>
           <p className="text-muted-foreground">
             Enter a session name to start or join a video call

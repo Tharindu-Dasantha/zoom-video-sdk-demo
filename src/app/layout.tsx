@@ -8,7 +8,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "jenis akkage app eka",
+  title: "Jenis Akkage App Eka",
   description: "Video calling app powered by Zoom Video SDK",
   icons: {
     icon: "/favicon.svg",

@@ -123,7 +123,7 @@ const Videochat = (props: { slug: string; JWT: string }) => {
       {/* Header */}
       <div className="text-center mb-4">
         <h1 className="text-3xl font-bold tracking-tight">
-          jenis akkage app eka
+          Jenis Akkage App Eka
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Session:{" "}
