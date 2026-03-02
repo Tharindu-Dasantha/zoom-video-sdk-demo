@@ -34,7 +34,7 @@ export default function Home() {
             <Video className="h-7 w-7 text-[#8ab4f8]" />
           </div>
           <h1 className="text-3xl font-medium text-white tracking-tight">
-            Jenis Akkage App Eka
+           Zoom Test App for Acadamic Maestro 
           </h1>
           <p className="text-[#9aa0a6] text-sm">
             Start or join a video meeting

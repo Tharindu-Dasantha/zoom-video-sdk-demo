@@ -308,7 +308,7 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
       <header className="flex items-center justify-between px-4 py-2 bg-[#202124] border-b border-[#3c4043]/50">
         <div className="flex items-center gap-3">
           <span className="text-base font-medium text-white">
-            Jenis Akkage App Eka
+            Zoom Test App
           </span>
           <span className="h-4 w-px bg-[#3c4043]" />
           <span className="text-sm text-[#9aa0a6]">{session}</span>
