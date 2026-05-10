@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
                   <tr>
                     <td style="background: linear-gradient(135deg, #1e1b4b, #312e81); padding: 32px; text-align: center;">
                       <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
-                        📹 Jenis Akkage App Eka
+                        📹 Zoom Test App for Acadamic Maestro
                       </h1>
                     </td>
                   </tr>
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
     `;
 
     await transporter.sendMail({
-      from: `"Jenis Akkage App Eka" <${SMTP_USER}>`,
+      from: `"Zoom Test App" <${SMTP_USER}>`,
       to: email.trim(),
       subject: `${sender} invited you to a video call — ${sessionName.trim()}`,
       text: `${sender} invited you to join a video call session "${sessionName.trim()}". Join here: ${joinUrl}`,
