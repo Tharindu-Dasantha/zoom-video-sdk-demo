@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model TestimonialLink {
+  id             String     @id @default(cuid())
+  token          String     @unique @default(cuid())
+  recipientName  String
+  recipientEmail String?
+  // PENDING | IN_PROGRESS | COMPLETED
+  status         String     @default("PENDING")
+  createdAt      DateTime   @default(now())
+  recording      Recording?
+}
+
+model Recording {
+  id            String          @id @default(cuid())
+  linkId        String          @unique
+  link          TestimonialLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  uploadUrl     String
+  fileKey       String
+  zoomSessionId String?
+  durationSec   Int?
+  fileSizeMB    Float?
+  createdAt     DateTime        @default(now())
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}

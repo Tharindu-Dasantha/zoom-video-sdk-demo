@@ -1,0 +1,549 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import ZoomVideo, { VideoQuality, type VideoClient } from "@zoom/videosdk";
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Circle,
+} from "lucide-react";
+
+type Stage =
+  | "loading"      // fetching session details
+  | "completed"    // already recorded
+  | "invalid"      // bad token
+  | "device-check" // test cam + mic
+  | "joining"      // connecting to Zoom
+  | "recording"    // live recording
+  | "done"         // session ended
+  | "error";       // unrecoverable error
+
+interface SessionData {
+  recipientName: string;
+  sessionName: string;
+  jwt: string;
+}
+
+const zoomClient: typeof VideoClient = ZoomVideo.createClient();
+
+// Simple mic level meter using Web Audio API
+function MicMeter({ stream }: { stream: MediaStream | null }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!stream) return;
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    const source = ctx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    const draw = () => {
+      analyser.getByteFrequencyData(data);
+      const avg = data.reduce((a, b) => a + b, 0) / data.length;
+      const level = Math.min(avg / 80, 1);
+
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const c = canvas.getContext("2d")!;
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        c.fillStyle = "#3c4043";
+        c.fillRect(0, 0, canvas.width, canvas.height);
+        const active = level > 0.05 ? "#34d399" : "#4a4d51";
+        c.fillStyle = active;
+        c.fillRect(0, 0, canvas.width * level, canvas.height);
+      }
+      rafRef.current = requestAnimationFrame(draw);
+    };
+    rafRef.current = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      source.disconnect();
+      ctx.close();
+    };
+  }, [stream]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={200}
+      height={8}
+      className="rounded-full overflow-hidden"
+    />
+  );
+}
+
+export default function RecordingFlow({ token }: { token: string }) {
+  const [stage, setStage] = useState<Stage>("loading");
+  const [session, setSession] = useState<SessionData | null>(null);
+  const [recipientName, setRecipientName] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // Device check state
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [camOk, setCamOk] = useState(false);
+  const [micOk, setMicOk] = useState(false);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Recording state
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [recordingStarted, setRecordingStarted] = useState(false);
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const selfVideoRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval>>(null);
+
+  // Fetch session details on mount
+  useEffect(() => {
+    fetch(`/api/record/${token}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error === "COMPLETED") {
+          setRecipientName(data.recipientName);
+          setStage("completed");
+        } else if (data.error) {
+          setErrorMsg(data.error);
+          setStage("invalid");
+        } else {
+          setSession(data);
+          setRecipientName(data.recipientName);
+          setStage("device-check");
+        }
+      })
+      .catch(() => {
+        setErrorMsg("Could not load session. Please check your link.");
+        setStage("invalid");
+      });
+  }, [token]);
+
+  // Request camera + mic and start preview
+  const requestDevices = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: true,
+      });
+      setLocalStream(stream);
+      setCamOk(true);
+      setMicOk(true);
+      if (previewVideoRef.current) {
+        previewVideoRef.current.srcObject = stream;
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes("video")) setCamOk(false);
+      if (msg.includes("audio")) setMicOk(false);
+      setErrorMsg("Could not access camera or microphone. Please allow access and refresh.");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (stage === "device-check") {
+      requestDevices();
+    }
+    return () => {
+      if (stage !== "recording") {
+        localStream?.getTracks().forEach((t) => t.stop());
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
+
+  const startRecording = async () => {
+    if (!session) return;
+    setStage("joining");
+
+    // Stop preview stream — Zoom will take over the camera
+    localStream?.getTracks().forEach((t) => t.stop());
+    setLocalStream(null);
+
+    try {
+      await zoomClient.init("en-US", "Global", { patchJsMedia: true });
+
+      zoomClient.on(
+        "peer-video-state-change",
+        async (payload: { action: "Start" | "Stop"; userId: number }) => {
+          if (payload.action === "Start") {
+            try {
+              const ms = zoomClient.getMediaStream();
+              const el = await ms.attachVideo(payload.userId, VideoQuality.Video_720P);
+              const currentId = zoomClient.getCurrentUserInfo()?.userId;
+              if (payload.userId === currentId && selfVideoRef.current) {
+                selfVideoRef.current.innerHTML = "";
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                selfVideoRef.current.appendChild(el as any);
+              }
+            } catch (err) {
+              console.warn("attach video error", err);
+            }
+          }
+        }
+      );
+
+      await zoomClient.join(session.sessionName, session.jwt, session.recipientName);
+
+      // Mark link as IN_PROGRESS
+      fetch(`/api/record/${token}`, { method: "PATCH" }).catch(() => {});
+
+      const mediaStream = zoomClient.getMediaStream();
+
+      await mediaStream.startAudio();
+      setIsAudioMuted(false);
+
+      await mediaStream.startVideo();
+      setIsVideoMuted(false);
+
+      // Attach self-view
+      setTimeout(async () => {
+        try {
+          const userId = zoomClient.getCurrentUserInfo().userId;
+          const el = await mediaStream.attachVideo(userId, VideoQuality.Video_720P);
+          if (selfVideoRef.current) {
+            selfVideoRef.current.innerHTML = "";
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            selfVideoRef.current.appendChild(el as any);
+          }
+        } catch (err) {
+          console.warn("self attach error", err);
+        }
+      }, 400);
+
+      // Start cloud recording
+      try {
+        const recordingClient = zoomClient.getRecordingClient();
+        await recordingClient.startCloudRecording();
+        setRecordingStarted(true);
+      } catch (recErr) {
+        console.warn("Cloud recording start failed:", recErr);
+        // Continue even if recording fails to start — user can still record
+      }
+
+      // Start elapsed timer
+      setElapsedSec(0);
+      timerRef.current = setInterval(() => {
+        setElapsedSec((s) => s + 1);
+      }, 1000);
+
+      setStage("recording");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setErrorMsg(`Failed to join session: ${msg}`);
+      setStage("error");
+    }
+  };
+
+  const toggleVideo = async () => {
+    try {
+      const ms = zoomClient.getMediaStream();
+      if (isVideoMuted) {
+        await ms.startVideo();
+        setIsVideoMuted(false);
+        setTimeout(async () => {
+          try {
+            const userId = zoomClient.getCurrentUserInfo().userId;
+            const el = await ms.attachVideo(userId, VideoQuality.Video_720P);
+            if (selfVideoRef.current) {
+              selfVideoRef.current.innerHTML = "";
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              selfVideoRef.current.appendChild(el as any);
+            }
+          } catch (err) {
+            console.warn(err);
+          }
+        }, 200);
+      } else {
+        await ms.stopVideo();
+        setIsVideoMuted(true);
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  const toggleAudio = async () => {
+    try {
+      const ms = zoomClient.getMediaStream();
+      if (isAudioMuted) {
+        await ms.unmuteAudio();
+        setIsAudioMuted(false);
+      } else {
+        await ms.muteAudio();
+        setIsAudioMuted(true);
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  const finishRecording = async () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    try {
+      zoomClient.off("peer-video-state-change", () => {});
+      await zoomClient.leave();
+    } catch (err) {
+      console.warn(err);
+    }
+    setStage("done");
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      localStream?.getTracks().forEach((t) => t.stop());
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const formatTime = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  };
+
+  // ─── Stages ────────────────────────────────────────────────────────────────
+
+  if (stage === "loading") {
+    return (
+      <FullPage>
+        <Loader2 className="h-8 w-8 animate-spin text-[#8ab4f8]" />
+        <p className="mt-3 text-sm text-[#9aa0a6]">Loading your session…</p>
+      </FullPage>
+    );
+  }
+
+  if (stage === "invalid" || stage === "error") {
+    return (
+      <FullPage>
+        <AlertCircle className="h-10 w-10 text-red-400" />
+        <h2 className="mt-4 text-lg font-medium text-white">Something went wrong</h2>
+        <p className="mt-2 max-w-sm text-center text-sm text-[#9aa0a6]">{errorMsg}</p>
+      </FullPage>
+    );
+  }
+
+  if (stage === "completed") {
+    return (
+      <FullPage>
+        <CheckCircle2 className="h-12 w-12 text-green-400" />
+        <h2 className="mt-4 text-xl font-medium text-white">
+          Already recorded — thank you{recipientName ? `, ${recipientName}` : ""}!
+        </h2>
+        <p className="mt-2 text-sm text-[#9aa0a6]">
+          Your testimonial has been received. You can close this window.
+        </p>
+      </FullPage>
+    );
+  }
+
+  if (stage === "done") {
+    return (
+      <FullPage>
+        <CheckCircle2 className="h-14 w-14 text-green-400" />
+        <h2 className="mt-5 text-2xl font-medium text-white">
+          Thank you{recipientName ? `, ${recipientName}` : ""}!
+        </h2>
+        <p className="mt-3 max-w-sm text-center text-sm text-[#9aa0a6]">
+          Your testimonial is being processed. You can close this window — everything
+          is saved automatically.
+        </p>
+      </FullPage>
+    );
+  }
+
+  if (stage === "device-check") {
+    return (
+      <div className="flex min-h-screen flex-col items-center bg-[#202124] px-4 py-10">
+        <div className="w-full max-w-lg space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-medium text-white">
+              Hi{recipientName ? `, ${recipientName}` : ""}! Let&apos;s get you set up
+            </h1>
+            <p className="text-sm text-[#9aa0a6]">
+              Make sure your camera and microphone are working before recording.
+            </p>
+          </div>
+
+          {/* Camera preview */}
+          <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-[#292a2d] border border-[#3c4043]">
+            <video
+              ref={previewVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className="h-full w-full object-cover scale-x-[-1]"
+            />
+            {!camOk && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <VideoOff className="h-12 w-12 text-[#5f6368]" />
+              </div>
+            )}
+          </div>
+
+          {/* Device status */}
+          <div className="rounded-xl bg-[#292a2d] border border-[#3c4043] divide-y divide-[#3c4043]">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-3">
+                <Video className="h-4 w-4 text-[#9aa0a6]" />
+                <span className="text-sm text-white">Camera</span>
+              </div>
+              {camOk ? (
+                <CheckCircle2 className="h-5 w-5 text-green-400" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-400" />
+              )}
+            </div>
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-3">
+                <Mic className="h-4 w-4 text-[#9aa0a6]" />
+                <span className="text-sm text-white">Microphone</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {micOk && <MicMeter stream={localStream} />}
+                {micOk ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {errorMsg && (
+            <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+              {errorMsg}
+            </div>
+          )}
+
+          <button
+            onClick={startRecording}
+            disabled={!camOk || !micOk}
+            className="w-full flex items-center justify-center gap-2 rounded-full bg-[#8ab4f8] px-6 py-4 text-base font-medium text-[#202124] hover:bg-[#aecbfa] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Circle className="h-4 w-4 fill-red-500 text-red-500" />
+            Start Recording
+          </button>
+
+          <p className="text-center text-xs text-[#5f6368]">
+            Recording begins as soon as you join. Make sure you&apos;re in a quiet place.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage === "joining") {
+    return (
+      <FullPage>
+        <Loader2 className="h-8 w-8 animate-spin text-[#8ab4f8]" />
+        <p className="mt-3 text-sm text-[#9aa0a6]">Starting your recording session…</p>
+      </FullPage>
+    );
+  }
+
+  // ─── Recording stage ────────────────────────────────────────────────────────
+  return (
+    <div className="flex h-screen flex-col bg-black">
+      {/* Top bar */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-5 py-4">
+        {recordingStarted ? (
+          <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+            </span>
+            <span className="text-xs font-semibold text-white">REC</span>
+            <span className="text-xs text-[#9aa0a6]">{formatTime(elapsedSec)}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
+            <Loader2 className="h-3 w-3 animate-spin text-yellow-400" />
+            <span className="text-xs text-yellow-400">Starting recording…</span>
+          </div>
+        )}
+      </div>
+
+      {/* Self-view video */}
+      <div className="relative flex-1 overflow-hidden">
+        <div
+          ref={selfVideoRef}
+          className="h-full w-full [&>video-player]:h-full [&>video-player]:w-full [&>video-player]:object-cover"
+        />
+        {isVideoMuted && (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#202124]">
+            <VideoOff className="h-16 w-16 text-[#5f6368]" />
+          </div>
+        )}
+      </div>
+
+      {/* Error recovery tip */}
+      <div className="absolute bottom-24 left-4 right-4 z-10 flex justify-center">
+        <div className="rounded-xl bg-black/70 px-4 py-2.5 backdrop-blur-sm max-w-md text-center">
+          <p className="text-xs text-[#9aa0a6]">
+            Made a mistake?{" "}
+            <span className="text-white font-medium">
+              Wait 2 seconds, then continue from your last sentence.
+            </span>{" "}
+            The team will edit it out.
+          </p>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-4 bg-gradient-to-t from-black/80 to-transparent px-4 py-6">
+        {/* Mic toggle */}
+        <button
+          onClick={toggleAudio}
+          className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+            isAudioMuted
+              ? "bg-red-500 hover:bg-red-600 text-white"
+              : "bg-white/10 hover:bg-white/20 text-white"
+          }`}
+          title={isAudioMuted ? "Unmute" : "Mute"}
+        >
+          {isAudioMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+        </button>
+
+        {/* Camera toggle */}
+        <button
+          onClick={toggleVideo}
+          className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+            isVideoMuted
+              ? "bg-red-500 hover:bg-red-600 text-white"
+              : "bg-white/10 hover:bg-white/20 text-white"
+          }`}
+          title={isVideoMuted ? "Turn on camera" : "Turn off camera"}
+        >
+          {isVideoMuted ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+        </button>
+
+        {/* Separator */}
+        <div className="h-8 w-px bg-white/20" />
+
+        {/* Done button */}
+        <button
+          onClick={finishRecording}
+          className="flex h-12 items-center gap-2 rounded-full bg-[#8ab4f8] px-6 text-sm font-medium text-[#202124] hover:bg-[#aecbfa] transition-colors"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FullPage({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#202124] p-6">
+      <div className="flex flex-col items-center text-center">{children}</div>
+    </div>
+  );
+}
