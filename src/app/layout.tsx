@@ -8,7 +8,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Zoom Test App",
+  title: "Tenon Link Connect",
   description: "Video calling app powered by Zoom Video SDK",
   icons: {
     icon: "/favicon.svg",

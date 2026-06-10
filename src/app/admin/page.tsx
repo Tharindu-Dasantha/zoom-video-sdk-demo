@@ -155,7 +155,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h1 className="text-base font-medium text-white">Testimonial Admin</h1>
-              <p className="text-xs text-[#9aa0a6]">Academic Maestro</p>
+              <p className="text-xs text-[#9aa0a6]">Tenon Link Connect</p>
             </div>
           </div>
           <a
