@@ -1,15 +1,5 @@
 import Script from "next/script";
-import dynamic from "next/dynamic";
-import { Loader2 } from "lucide-react";
-
-const RecordingFlow = dynamic(() => import("./RecordingFlow"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex min-h-screen items-center justify-center bg-tl-navy">
-      <Loader2 className="h-8 w-8 animate-spin text-tl-blue" />
-    </div>
-  ),
-});
+import RecordingFlowClientWrapper from "./RecordingFlowClientWrapper";
 
 export default async function RecordPage({
   params,
@@ -20,7 +10,7 @@ export default async function RecordPage({
 
   return (
     <>
-      <RecordingFlow token={token} />
+      <RecordingFlowClientWrapper token={token} />
       <Script src="/coi-serviceworker.js" strategy="beforeInteractive" />
     </>
   );
