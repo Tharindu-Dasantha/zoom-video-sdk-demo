@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import type { Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  weight: ["400", "500", "600"],
+});
 
 export const viewport: Viewport = {
   initialScale: 1.0,
@@ -8,8 +15,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Tenon Link Connect",
-  description: "Video calling app powered by Zoom Video SDK",
+  title: "tenon-Link Connect",
+  description: "One link. Every meeting.",
   icons: {
     icon: "/favicon.svg",
   },
@@ -21,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-[#202124] text-white antialiased">
+    <html lang="en" className={`dark ${inter.variable}`}>
+      <body className="min-h-screen bg-tl-navy text-white antialiased font-sans">
         {children}
       </body>
     </html>

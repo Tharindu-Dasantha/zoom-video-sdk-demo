@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Circle,
 } from "lucide-react";
+import Logo from "@/components/Logo";
 
 type Stage =
   | "loading"      // fetching session details
@@ -54,9 +55,9 @@ function MicMeter({ stream }: { stream: MediaStream | null }) {
       if (canvas) {
         const c = canvas.getContext("2d")!;
         c.clearRect(0, 0, canvas.width, canvas.height);
-        c.fillStyle = "#3c4043";
+        c.fillStyle = "#1E3A5F";
         c.fillRect(0, 0, canvas.width, canvas.height);
-        const active = level > 0.05 ? "#34d399" : "#4a4d51";
+        const active = level > 0.05 ? "#10B981" : "#2A5278";
         c.fillStyle = active;
         c.fillRect(0, 0, canvas.width * level, canvas.height);
       }
@@ -314,8 +315,8 @@ export default function RecordingFlow({ token }: { token: string }) {
   if (stage === "loading") {
     return (
       <FullPage>
-        <Loader2 className="h-8 w-8 animate-spin text-[#8ab4f8]" />
-        <p className="mt-3 text-sm text-[#9aa0a6]">Loading your session…</p>
+        <Loader2 className="h-8 w-8 animate-spin text-tl-blue" />
+        <p className="mt-3 text-sm text-white/60">Loading your session…</p>
       </FullPage>
     );
   }
@@ -323,9 +324,9 @@ export default function RecordingFlow({ token }: { token: string }) {
   if (stage === "invalid" || stage === "error") {
     return (
       <FullPage>
-        <AlertCircle className="h-10 w-10 text-red-400" />
-        <h2 className="mt-4 text-lg font-medium text-white">Something went wrong</h2>
-        <p className="mt-2 max-w-sm text-center text-sm text-[#9aa0a6]">{errorMsg}</p>
+        <AlertCircle className="h-10 w-10 text-tl-error" />
+        <h2 className="mt-4 text-lg font-semibold text-white">Something went wrong</h2>
+        <p className="mt-2 max-w-sm text-center text-sm text-white/60">{errorMsg}</p>
       </FullPage>
     );
   }
@@ -333,11 +334,11 @@ export default function RecordingFlow({ token }: { token: string }) {
   if (stage === "completed") {
     return (
       <FullPage>
-        <CheckCircle2 className="h-12 w-12 text-green-400" />
-        <h2 className="mt-4 text-xl font-medium text-white">
+        <CheckCircle2 className="h-12 w-12 text-tl-success" />
+        <h2 className="mt-4 text-xl font-semibold text-white">
           Already recorded — thank you{recipientName ? `, ${recipientName}` : ""}!
         </h2>
-        <p className="mt-2 text-sm text-[#9aa0a6]">
+        <p className="mt-2 text-sm text-white/60">
           Your testimonial has been received. You can close this window.
         </p>
       </FullPage>
@@ -347,11 +348,11 @@ export default function RecordingFlow({ token }: { token: string }) {
   if (stage === "done") {
     return (
       <FullPage>
-        <CheckCircle2 className="h-14 w-14 text-green-400" />
-        <h2 className="mt-5 text-2xl font-medium text-white">
+        <CheckCircle2 className="h-14 w-14 text-tl-success" />
+        <h2 className="mt-5 text-2xl font-semibold text-white">
           Thank you{recipientName ? `, ${recipientName}` : ""}!
         </h2>
-        <p className="mt-3 max-w-sm text-center text-sm text-[#9aa0a6]">
+        <p className="mt-3 max-w-sm text-center text-sm text-white/60">
           Your testimonial is being processed. You can close this window — everything
           is saved automatically.
         </p>
@@ -361,19 +362,21 @@ export default function RecordingFlow({ token }: { token: string }) {
 
   if (stage === "device-check") {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-[#202124] px-4 py-10">
+      <div className="flex min-h-screen flex-col items-center bg-tl-navy px-4 py-10">
         <div className="w-full max-w-lg space-y-6">
+          <Logo size="sm" className="justify-center" />
+
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-medium text-white">
+            <h1 className="text-2xl font-semibold text-white">
               Hi{recipientName ? `, ${recipientName}` : ""}! Let&apos;s get you set up
             </h1>
-            <p className="text-sm text-[#9aa0a6]">
+            <p className="text-sm text-white/60">
               Make sure your camera and microphone are working before recording.
             </p>
           </div>
 
           {/* Camera preview */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-[#292a2d] border border-[#3c4043]">
+          <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-tl-navy-800 border border-white/[0.08]">
             <video
               ref={previewVideoRef}
               autoPlay
@@ -383,42 +386,42 @@ export default function RecordingFlow({ token }: { token: string }) {
             />
             {!camOk && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <VideoOff className="h-12 w-12 text-[#5f6368]" />
+                <VideoOff className="h-12 w-12 text-white/30" />
               </div>
             )}
           </div>
 
           {/* Device status */}
-          <div className="rounded-xl bg-[#292a2d] border border-[#3c4043] divide-y divide-[#3c4043]">
+          <div className="rounded-lg bg-tl-navy-800 border border-white/[0.08] divide-y divide-white/10">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
-                <Video className="h-4 w-4 text-[#9aa0a6]" />
+                <Video className="h-4 w-4 text-white/60" />
                 <span className="text-sm text-white">Camera</span>
               </div>
               {camOk ? (
-                <CheckCircle2 className="h-5 w-5 text-green-400" />
+                <CheckCircle2 className="h-5 w-5 text-tl-success" />
               ) : (
-                <AlertCircle className="h-5 w-5 text-red-400" />
+                <AlertCircle className="h-5 w-5 text-tl-error" />
               )}
             </div>
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
-                <Mic className="h-4 w-4 text-[#9aa0a6]" />
+                <Mic className="h-4 w-4 text-white/60" />
                 <span className="text-sm text-white">Microphone</span>
               </div>
               <div className="flex items-center gap-3">
                 {micOk && <MicMeter stream={localStream} />}
                 {micOk ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                  <CheckCircle2 className="h-5 w-5 text-tl-success" />
                 ) : (
-                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <AlertCircle className="h-5 w-5 text-tl-error" />
                 )}
               </div>
             </div>
           </div>
 
           {errorMsg && (
-            <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+            <div className="rounded-lg bg-tl-error/10 border border-tl-error/20 px-4 py-3 text-sm text-tl-error">
               {errorMsg}
             </div>
           )}
@@ -426,13 +429,13 @@ export default function RecordingFlow({ token }: { token: string }) {
           <button
             onClick={startRecording}
             disabled={!camOk || !micOk}
-            className="w-full flex items-center justify-center gap-2 rounded-full bg-[#8ab4f8] px-6 py-4 text-base font-medium text-[#202124] hover:bg-[#aecbfa] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 rounded-sm bg-tl-blue px-6 py-4 text-base font-medium text-white hover:bg-tl-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Circle className="h-4 w-4 fill-red-500 text-red-500" />
+            <Circle className="h-4 w-4 fill-tl-error text-tl-error" />
             Start Recording
           </button>
 
-          <p className="text-center text-xs text-[#5f6368]">
+          <p className="text-center text-xs text-white/30">
             Recording begins as soon as you join. Make sure you&apos;re in a quiet place.
           </p>
         </div>
@@ -443,8 +446,8 @@ export default function RecordingFlow({ token }: { token: string }) {
   if (stage === "joining") {
     return (
       <FullPage>
-        <Loader2 className="h-8 w-8 animate-spin text-[#8ab4f8]" />
-        <p className="mt-3 text-sm text-[#9aa0a6]">Starting your recording session…</p>
+        <Loader2 className="h-8 w-8 animate-spin text-tl-blue" />
+        <p className="mt-3 text-sm text-white/60">Starting your recording session…</p>
       </FullPage>
     );
   }
@@ -457,16 +460,16 @@ export default function RecordingFlow({ token }: { token: string }) {
         {recordingStarted ? (
           <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-tl-error opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-tl-error" />
             </span>
             <span className="text-xs font-semibold text-white">REC</span>
-            <span className="text-xs text-[#9aa0a6]">{formatTime(elapsedSec)}</span>
+            <span className="text-xs text-white/60 tabular-nums">{formatTime(elapsedSec)}</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
-            <Loader2 className="h-3 w-3 animate-spin text-yellow-400" />
-            <span className="text-xs text-yellow-400">Starting recording…</span>
+            <Loader2 className="h-3 w-3 animate-spin text-tl-warning" />
+            <span className="text-xs text-tl-warning">Starting recording…</span>
           </div>
         )}
       </div>
@@ -478,16 +481,16 @@ export default function RecordingFlow({ token }: { token: string }) {
           className="h-full w-full [&>video-player]:h-full [&>video-player]:w-full [&>video-player]:object-cover"
         />
         {isVideoMuted && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#202124]">
-            <VideoOff className="h-16 w-16 text-[#5f6368]" />
+          <div className="absolute inset-0 flex items-center justify-center bg-tl-navy">
+            <VideoOff className="h-16 w-16 text-white/30" />
           </div>
         )}
       </div>
 
       {/* Error recovery tip */}
       <div className="absolute bottom-24 left-4 right-4 z-10 flex justify-center">
-        <div className="rounded-xl bg-black/70 px-4 py-2.5 backdrop-blur-sm max-w-md text-center">
-          <p className="text-xs text-[#9aa0a6]">
+        <div className="rounded-lg bg-black/70 px-4 py-2.5 backdrop-blur-sm max-w-md text-center">
+          <p className="text-xs text-white/60">
             Made a mistake?{" "}
             <span className="text-white font-medium">
               Wait 2 seconds, then continue from your last sentence.
@@ -502,9 +505,9 @@ export default function RecordingFlow({ token }: { token: string }) {
         {/* Mic toggle */}
         <button
           onClick={toggleAudio}
-          className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+          className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-150 ease-out ${
             isAudioMuted
-              ? "bg-red-500 hover:bg-red-600 text-white"
+              ? "bg-tl-error hover:bg-tl-error/90 text-white"
               : "bg-white/10 hover:bg-white/20 text-white"
           }`}
           title={isAudioMuted ? "Unmute" : "Mute"}
@@ -515,9 +518,9 @@ export default function RecordingFlow({ token }: { token: string }) {
         {/* Camera toggle */}
         <button
           onClick={toggleVideo}
-          className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+          className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-150 ease-out ${
             isVideoMuted
-              ? "bg-red-500 hover:bg-red-600 text-white"
+              ? "bg-tl-error hover:bg-tl-error/90 text-white"
               : "bg-white/10 hover:bg-white/20 text-white"
           }`}
           title={isVideoMuted ? "Turn on camera" : "Turn off camera"}
@@ -531,7 +534,7 @@ export default function RecordingFlow({ token }: { token: string }) {
         {/* Done button */}
         <button
           onClick={finishRecording}
-          className="flex h-12 items-center gap-2 rounded-full bg-[#8ab4f8] px-6 text-sm font-medium text-[#202124] hover:bg-[#aecbfa] transition-colors"
+          className="flex h-12 items-center gap-2 rounded-sm bg-tl-blue px-6 text-sm font-medium text-white hover:bg-tl-blue-700 transition-colors"
         >
           Done
         </button>
@@ -542,7 +545,7 @@ export default function RecordingFlow({ token }: { token: string }) {
 
 function FullPage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#202124] p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-tl-navy p-6">
       <div className="flex flex-col items-center text-center">{children}</div>
     </div>
   );

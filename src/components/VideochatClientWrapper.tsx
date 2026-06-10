@@ -8,10 +8,10 @@ const Videochat = dynamic<{ slug: string; JWT: string; userName: string }>(
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-screen items-center justify-center bg-[#202124]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#8ab4f8]" />
-        <span className="ml-3 text-sm text-[#9aa0a6]">
-          Loading video SDK...
+      <div className="flex min-h-screen items-center justify-center bg-tl-navy">
+        <Loader2 className="h-8 w-8 animate-spin text-tl-blue" />
+        <span className="ml-3 text-sm text-white/60">
+          Loading video SDK
         </span>
       </div>
     ),

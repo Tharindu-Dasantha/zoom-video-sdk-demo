@@ -52,11 +52,30 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // tenon-Link design tokens
+        "tl-navy": "#0A1628",
+        "tl-navy-800": "#0F1F3D",
+        "tl-navy-700": "#162947",
+        "tl-navy-600": "#1E3A5F",
+        "tl-navy-400": "#2A5278",
+        "tl-navy-200": "#7BA8D4",
+        "tl-blue": "#2563EB",
+        "tl-blue-700": "#1D4ED8",
+        "tl-blue-100": "#DBEAFE",
+        "tl-success": "#10B981",
+        "tl-warning": "#F59E0B",
+        "tl-error": "#EF4444",
+        "tl-neutral": "#7BA8D4",
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        mono: ["var(--font-inter)", "Inter", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "14px",
       },
       keyframes: {
         "accordion-down": {

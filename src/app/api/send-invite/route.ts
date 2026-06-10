@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const joinUrl = `${APP_URL}/call/${encodeURIComponent(sessionName.trim())}`;
+    const joinUrl = `${APP_URL}/meeting/${encodeURIComponent(sessionName.trim())}`;
     const sender = inviterName?.trim() || "Someone";
 
     const transporter = nodemailer.createTransport({
@@ -79,9 +79,9 @@ export async function POST(request: NextRequest) {
                 <table width="480" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                   <!-- Header -->
                   <tr>
-                    <td style="background: linear-gradient(135deg, #1e1b4b, #312e81); padding: 32px; text-align: center;">
-                      <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
-                        📹 Tenon Link Connect
+                    <td style="background-color: #0A1628; padding: 32px; text-align: center;">
+                      <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600;">
+                        tenon-Link <span style="color: #2563EB;">Connect</span>
                       </h1>
                     </td>
                   </tr>
@@ -89,17 +89,17 @@ export async function POST(request: NextRequest) {
                   <tr>
                     <td style="padding: 32px;">
                       <p style="margin: 0 0 16px; color: #18181b; font-size: 16px; line-height: 1.6;">
-                        Hi there! 👋
+                        Hi there,
                       </p>
                       <p style="margin: 0 0 24px; color: #3f3f46; font-size: 15px; line-height: 1.6;">
-                        <strong>${sender}</strong> has invited you to join a video call session.
+                        <strong>${sender}</strong> has invited you to join a video meeting.
                       </p>
                       <!-- Session card -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5; border-radius: 8px; margin-bottom: 24px;">
                         <tr>
                           <td style="padding: 16px;">
                             <p style="margin: 0 0 4px; color: #71717a; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;">
-                              Session Name
+                              Meeting code
                             </p>
                             <p style="margin: 0; color: #18181b; font-size: 18px; font-weight: 600; font-family: monospace;">
                               ${sessionName.trim()}
@@ -112,8 +112,8 @@ export async function POST(request: NextRequest) {
                         <tr>
                           <td align="center">
                             <a href="${joinUrl}"
-                               style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600;">
-                              Join Video Call →
+                               style="display: inline-block; background-color: #2563EB; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 15px; font-weight: 600;">
+                              Join meeting
                             </a>
                           </td>
                         </tr>
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
                   <tr>
                     <td style="padding: 20px 32px; border-top: 1px solid #e4e4e7; text-align: center;">
                       <p style="margin: 0; color: #a1a1aa; font-size: 12px;">
-                        Powered by Zoom Video SDK
+                        A tenon-Link product by Kneoxt
                       </p>
                     </td>
                   </tr>
@@ -137,10 +137,10 @@ export async function POST(request: NextRequest) {
     `;
 
     await transporter.sendMail({
-      from: `"Tenon Link Connect" <${SMTP_USER}>`,
+      from: `"tenon-Link Connect" <${SMTP_USER}>`,
       to: email.trim(),
-      subject: `${sender} invited you to a video call — ${sessionName.trim()}`,
-      text: `${sender} invited you to join a video call session "${sessionName.trim()}". Join here: ${joinUrl}`,
+      subject: `${sender} invited you to a meeting — ${sessionName.trim()}`,
+      text: `${sender} invited you to join a video meeting "${sessionName.trim()}". Join here: ${joinUrl}`,
       html: htmlContent,
     });
 
