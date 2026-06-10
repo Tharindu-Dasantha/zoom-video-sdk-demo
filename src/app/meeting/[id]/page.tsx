@@ -1,6 +1,7 @@
 import { getData } from "@/data/getToken";
 import VideochatClientWrapper from "@/components/VideochatClientWrapper";
 import Logo from "@/components/Logo";
+import Link from "next/link";
 import Script from "next/script";
 
 export default async function Page(props: {
@@ -26,12 +27,12 @@ export default async function Page(props: {
               Connection error
             </h1>
             <p className="text-sm text-white/60 mb-4">{message}</p>
-            <a
+            <Link
               href="/"
               className="inline-flex items-center text-sm font-medium text-tl-blue hover:underline"
             >
               ← Back to home
-            </a>
+            </Link>
           </div>
         </div>
       </main>

@@ -1,100 +1,103 @@
-"use client";
-
+import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Video, ArrowRight } from "lucide-react";
+import Logo from "@/components/Logo";
+import { Video, Mail, MessageSquareText, ArrowRight } from "lucide-react";
 
-export default function Home() {
-  const [sessionName, setSessionName] = useState("");
-  const [userName, setUserName] = useState("");
-  const router = useRouter();
+const FEATURES = [
+  {
+    icon: Video,
+    title: "Instant meetings",
+    description: "Create a room and join from the browser. No downloads, no accounts.",
+  },
+  {
+    icon: Mail,
+    title: "Secure email invites",
+    description: "Send a meeting link straight to a participant's inbox.",
+  },
+  {
+    icon: MessageSquareText,
+    title: "Testimonial recording",
+    description: "Share a recording link and capture video testimonials on the spot.",
+  },
+] as const;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedSession = sessionName.trim();
-    const trimmedName = userName.trim();
-    if (trimmedSession && trimmedName) {
-      const params = new URLSearchParams({ name: trimmedName });
-      router.push(
-        `/call/${encodeURIComponent(trimmedSession)}?${params.toString()}`
-      );
-    }
-  };
-
-  const isValid = sessionName.trim() && userName.trim();
-
+export default function LandingPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#202124] p-6">
-      <div className="w-full max-w-md space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#8ab4f8]/10">
-            <Video className="h-7 w-7 text-[#8ab4f8]" />
+    <div className="min-h-screen bg-tl-navy">
+      {/* Nav */}
+      <header className="border-b border-white/[0.08]">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+          <Logo size="md" />
+          <div className="flex items-center gap-3">
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                Sign in
+              </Button>
+            </Link>
+            <Link href="/meeting/new">
+              <Button size="sm">Start a meeting</Button>
+            </Link>
           </div>
-          <h1 className="text-3xl font-medium text-white tracking-tight">
-            Tenon Link Connect
-          </h1>
-          <p className="text-[#9aa0a6] text-sm">
-            Start or join a video meeting
-          </p>
         </div>
+      </header>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl bg-[#292a2d] p-6 shadow-xl border border-[#3c4043]"
-        >
-          <div className="space-y-1.5">
-            <label
-              htmlFor="user-name"
-              className="text-xs font-medium text-[#9aa0a6] uppercase tracking-wider"
-            >
-              Your Name
-            </label>
-            <Input
-              id="user-name"
-              type="text"
-              placeholder="Enter your name"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              autoFocus
-              autoComplete="off"
-              className="bg-[#202124] border-[#3c4043] text-white placeholder:text-[#5f6368] focus-visible:ring-[#8ab4f8]"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label
-              htmlFor="session-name"
-              className="text-xs font-medium text-[#9aa0a6] uppercase tracking-wider"
-            >
-              Meeting Code
-            </label>
-            <Input
-              id="session-name"
-              type="text"
-              placeholder="e.g. team-standup"
-              value={sessionName}
-              onChange={(e) => setSessionName(e.target.value)}
-              autoComplete="off"
-              className="bg-[#202124] border-[#3c4043] text-white placeholder:text-[#5f6368] focus-visible:ring-[#8ab4f8]"
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full bg-[#8ab4f8] text-[#202124] hover:bg-[#aecbfa] font-medium h-11 rounded-full"
-            disabled={!isValid}
-          >
-            Join meeting
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </form>
-
-        <p className="text-center text-xs text-[#5f6368]">
-          Powered by Zoom Video SDK
+      {/* Hero */}
+      <section className="mx-auto max-w-6xl px-6 py-24 text-center">
+        <h1 className="mx-auto max-w-2xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+          One link. Every meeting.
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl text-base text-white/60">
+          Start a video meeting, share a single link, and collect testimonial
+          recordings — powered by tenon-Link Connect.
         </p>
-      </div>
-    </main>
+        <div className="mt-8 flex items-center justify-center">
+          <Link href="/meeting/new">
+            <Button size="lg">
+              Start a meeting
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="mx-auto max-w-6xl px-6 pb-24">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {FEATURES.map(({ icon: Icon, title, description }) => (
+            <div
+              key={title}
+              className="rounded-lg bg-tl-navy-800 border border-white/[0.08] p-6"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-tl-blue/10">
+                <Icon className="h-5 w-5 text-tl-blue" />
+              </div>
+              <h3 className="mt-4 text-base font-semibold text-white">{title}</h3>
+              <p className="mt-1.5 text-sm text-white/60">{description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/[0.08]">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 sm:flex-row">
+          <p className="text-xs text-white/30">
+            © {new Date().getFullYear()} tenon-Link Connect
+          </p>
+          <div className="flex items-center gap-2 text-xs text-white/60">
+            <span>A tenon-Link product by</span>
+            <Image
+              src="/Kneoxt/dark.png"
+              alt="Kneoxt"
+              width={20}
+              height={20}
+              className="rounded-sm"
+            />
+            <span className="font-medium text-white">Kneoxt</span>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
