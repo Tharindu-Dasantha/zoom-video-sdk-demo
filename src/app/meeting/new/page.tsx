@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 export default function NewMeetingPage() {
@@ -79,9 +80,22 @@ export default function NewMeetingPage() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-white/30">
-          Powered by Zoom Video SDK
-        </p>
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-center text-[11px] text-white/30">
+            Powered by Zoom Video SDK
+          </p>
+          <div className="flex items-center gap-2 text-xs text-white/20">
+            <span>A tenon-Link product by</span>
+            <Image
+              src="/Kneoxt/dark.png"
+              alt="Kneoxt"
+              width={16}
+              height={16}
+              className="rounded-sm opacity-40 grayscale hover:opacity-100 transition-opacity"
+            />
+            <span className="font-medium text-white/40">Kneoxt</span>
+          </div>
+        </div>
       </div>
     </main>
   );

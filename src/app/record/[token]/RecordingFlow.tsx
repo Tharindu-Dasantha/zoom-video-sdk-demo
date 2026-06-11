@@ -13,6 +13,7 @@ import {
   Circle,
 } from "lucide-react";
 import Logo from "@/components/Logo";
+import KneoxtPill from "@/components/KneoxtPill";
 
 type Stage =
   | "loading"      // fetching session details
@@ -439,6 +440,7 @@ export default function RecordingFlow({ token }: { token: string }) {
             Recording begins as soon as you join. Make sure you&apos;re in a quiet place.
           </p>
         </div>
+        <KneoxtPill />
       </div>
     );
   }
@@ -539,6 +541,7 @@ export default function RecordingFlow({ token }: { token: string }) {
           Done
         </button>
       </div>
+      <KneoxtPill />
     </div>
   );
 }
@@ -547,6 +550,7 @@ function FullPage({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-tl-navy p-6">
       <div className="flex flex-col items-center text-center">{children}</div>
+      <KneoxtPill />
     </div>
   );
 }

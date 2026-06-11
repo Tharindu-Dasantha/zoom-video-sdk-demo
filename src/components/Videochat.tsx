@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import InviteModal from "./InviteModal";
 import Logo from "./Logo";
+import KneoxtPill from "./KneoxtPill";
 
 // Create client once at module level
 const client: typeof VideoClient = ZoomVideo.createClient();
@@ -463,6 +464,9 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
         isOpen={isInviteOpen}
         onClose={() => setIsInviteOpen(false)}
       />
+
+      {/* Floating Kneoxt Product Pill */}
+      <KneoxtPill />
     </div>
   );
 };

@@ -100,11 +100,11 @@ Exactly three colours. No exceptions in primary brand usage.
 
 ### Core three
 
-| Name           | Hex       | RGB               | Role                                      |
-|----------------|-----------|-------------------|-------------------------------------------|
-| Deep Navy      | `#0A1628` | 10, 22, 40        | Primary background, text on light         |
-| Electric Blue  | `#2563EB` | 37, 99, 235       | Brand accent, CTAs, links, the mark       |
-| White          | `#FFFFFF` | 255, 255, 255     | Text on dark, light surfaces, space       |
+| Name             | Hex       | RGB               | Role                                      |
+|------------------|-----------|-------------------|-------------------------------------------|
+| Dark Slate-Teal  | `#071210` | 7, 18, 16         | Primary background, text on light         |
+| Teal (Brand)     | `#13A983` | 19, 169, 131      | Brand accent, CTAs, links, suffix         |
+| White            | `#FFFFFF` | 255, 255, 255     | Text on dark, light surfaces, space       |
 
 ### Extended palette
 
@@ -112,13 +112,13 @@ These are derivations of the core three — not additional colours. Use sparingl
 
 | Name             | Hex       | Derivation                      | Usage                            |
 |------------------|-----------|---------------------------------|----------------------------------|
-| Navy 800         | `#0F1F3D` | Deep Navy lightened 8%          | Card surfaces, secondary bg      |
-| Navy 700         | `#162947` | Deep Navy lightened 14%         | Hover states on dark surfaces    |
-| Navy 600         | `#1E3A5F` | Deep Navy lightened 22%         | Borders, dividers on dark        |
-| Navy 400         | `#2A5278` | Deep Navy lightened 34%         | Muted text, secondary labels     |
-| Navy 200         | `#7BA8D4` | Deep Navy lightened 60%         | Disabled states, placeholders    |
-| Blue 700         | `#1D4ED8` | Electric Blue darkened 8%       | Button hover, pressed state      |
-| Blue 100         | `#DBEAFE` | Electric Blue at 12% opacity    | Tinted surfaces, info backgrounds|
+| Navy 800 (Card)  | `#0c1f1b` | Dark Slate-Teal lightened 8%     | Card surfaces, secondary bg      |
+| Navy 700 (Hover) | `#122e28` | Dark Slate-Teal lightened 14%    | Hover states on dark surfaces    |
+| Navy 600 (Border)| `#1b3d36` | Dark Slate-Teal lightened 22%    | Borders, dividers on dark        |
+| Navy 400 (Muted) | `#4f7870` | Dark Slate-Teal lightened 34%    | Muted text, secondary labels     |
+| Navy 200 (Neutral)| `#8da8a3` | Dark Slate-Teal lightened 60%    | Disabled states, placeholders    |
+| Blue 700 (Brand) | `#0f8c6c` | Teal (Brand) darkened 8%        | Button hover, pressed state      |
+| Blue 100 (Brand) | `rgba(19,169,131,0.1)` | Teal (Brand) at 10% opacity | Tinted surfaces, info backgrounds|
 | White 60         | `rgba(255,255,255,0.60)` | —             | Secondary text on dark           |
 | White 30         | `rgba(255,255,255,0.30)` | —             | Tertiary text, placeholders      |
 | White 10         | `rgba(255,255,255,0.10)` | —             | Subtle borders on dark           |

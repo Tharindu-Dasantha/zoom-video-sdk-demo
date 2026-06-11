@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import {
   Copy,
   Trash2,
@@ -379,6 +380,26 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="border-t border-white/[0.08] mt-12 bg-tl-navy-800">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 sm:flex-row">
+          <p className="text-xs text-white/30">
+            © {new Date().getFullYear()} tenon-Link Connect
+          </p>
+          <div className="flex items-center gap-2 text-xs text-white/60">
+            <span>A tenon-Link product by</span>
+            <Image
+              src="/Kneoxt/dark.png"
+              alt="Kneoxt"
+              width={20}
+              height={20}
+              className="rounded-sm"
+            />
+            <span className="font-medium text-white">Kneoxt</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

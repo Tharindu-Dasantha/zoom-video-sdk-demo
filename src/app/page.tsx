@@ -24,14 +24,17 @@ const FEATURES = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-tl-navy">
+    <div className="relative min-h-screen bg-tl-navy overflow-hidden">
+      {/* Background ambient glow */}
+      <div className="absolute top-0 left-1/2 -z-10 h-[500px] w-full max-w-7xl -translate-x-1/2 bg-[radial-gradient(ellipse_at_top,rgba(19,169,131,0.12),transparent_60%)] pointer-events-none" />
+
       {/* Nav */}
-      <header className="border-b border-white/[0.08]">
+      <header className="border-b border-white/[0.08] backdrop-blur-sm bg-tl-navy/20 sticky top-0 z-50">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Logo size="md" />
           <div className="flex items-center gap-3">
             <Link href="/login">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white">
                 Sign in
               </Button>
             </Link>
@@ -43,17 +46,20 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 py-24 text-center">
-        <h1 className="mx-auto max-w-2xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-          One link. Every meeting.
+      <section className="relative mx-auto max-w-6xl px-6 py-28 text-center">
+        <h1 className="mx-auto max-w-2xl text-4xl font-bold tracking-tight text-white sm:text-6xl md:text-[68px] leading-tight">
+          One link.{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#34B558] to-[#13A983]">
+            Every meeting.
+          </span>
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-base text-white/60">
+        <p className="mx-auto mt-6 max-w-xl text-base sm:text-lg text-white/60 leading-relaxed">
           Start a video meeting, share a single link, and collect testimonial
           recordings — powered by tenon-Link Connect.
         </p>
-        <div className="mt-8 flex items-center justify-center">
+        <div className="mt-10 flex items-center justify-center">
           <Link href="/meeting/new">
-            <Button size="lg">
+            <Button size="lg" className="h-12 px-8 text-base">
               Start a meeting
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -62,18 +68,18 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="grid gap-4 sm:grid-cols-3">
+      <section className="mx-auto max-w-6xl px-6 pb-28">
+        <div className="grid gap-6 sm:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, description }) => (
             <div
               key={title}
-              className="rounded-lg bg-tl-navy-800 border border-white/[0.08] p-6"
+              className="group rounded-xl bg-tl-navy-800/60 border border-white/[0.08] p-8 transition-all duration-300 hover:-translate-y-1 hover:border-[#13A983]/30 hover:bg-tl-navy-800/80 hover:shadow-[0_12px_40px_rgba(19,169,131,0.04)]"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-tl-blue/10">
-                <Icon className="h-5 w-5 text-tl-blue" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#13A983]/10 border border-[#13A983]/20 transition-colors group-hover:bg-[#13A983]/20">
+                <Icon className="h-6 w-6 text-[#13A983]" />
               </div>
-              <h3 className="mt-4 text-base font-semibold text-white">{title}</h3>
-              <p className="mt-1.5 text-sm text-white/60">{description}</p>
+              <h3 className="mt-5 text-lg font-semibold text-white">{title}</h3>
+              <p className="mt-2.5 text-sm text-white/60 leading-relaxed">{description}</p>
             </div>
           ))}
         </div>
