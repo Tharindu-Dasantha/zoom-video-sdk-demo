@@ -151,25 +151,25 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-tl-navy">
       {/* Header */}
-      <header className="border-b border-white/[0.08] bg-tl-navy-800 px-6 py-4">
+      <header className="border-b border-white/[0.08] bg-tl-navy-800 px-4 py-3 sm:px-6 sm:py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <Logo size="sm" />
-            <span className="rounded-full bg-tl-navy-700 border border-white/10 px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-white/60">
+            <span className="rounded-full bg-tl-navy-700 border border-white/10 px-2 py-0.5 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.08em] text-white/60">
               Admin
             </span>
           </div>
           <a
             href="/api/admin/logout"
-            className="flex items-center gap-2 rounded-sm border border-white/20 px-4 py-2 text-sm text-white hover:bg-white/[0.06] transition-colors duration-150 ease-out"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-sm border border-white/20 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm text-white hover:bg-white/[0.06] transition-colors duration-150 ease-out"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Logout
           </a>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl space-y-8 p-6">
+      <main className="mx-auto max-w-6xl space-y-6 sm:space-y-8 p-4 sm:p-6">
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
@@ -191,10 +191,10 @@ export default function AdminDashboard() {
 
         {/* Links table */}
         <div className="rounded-lg bg-tl-navy-800 border border-white/[0.08] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4">
             <h2 className="text-sm font-semibold text-white">Testimonial links</h2>
-            <Button onClick={() => setShowCreateModal(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1.5" />
+            <Button onClick={() => setShowCreateModal(true)} size="sm" className="text-xs sm:text-sm px-2.5 sm:px-3">
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
               Create link
             </Button>
           </div>
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
               {links.map((link) => (
                 <div
                   key={link.id}
-                  className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:gap-4"
+                  className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:gap-4 sm:px-6"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-white">{link.recipientName}</p>
@@ -221,26 +221,28 @@ export default function AdminDashboard() {
                     </p>
                   </div>
 
-                  <StatusBadge status={link.status} />
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <StatusBadge status={link.status} />
 
-                  {link.recording && (
-                    <a
-                      href={link.recording.uploadUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 rounded-full bg-tl-blue/10 px-3 py-1.5 text-xs font-medium text-tl-blue hover:bg-tl-blue/20 transition-colors duration-150 ease-out"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      View recording
-                      {link.recording.durationSec && (
-                        <span className="text-white/60">
-                          · {formatDuration(link.recording.durationSec)}
-                        </span>
-                      )}
-                    </a>
-                  )}
+                    {link.recording && (
+                      <a
+                        href={link.recording.uploadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 rounded-full bg-tl-blue/10 px-3 py-1.5 text-xs font-medium text-tl-blue hover:bg-tl-blue/20 transition-colors duration-150 ease-out"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        View recording
+                        {link.recording.durationSec && (
+                          <span className="text-white/60">
+                            · {formatDuration(link.recording.durationSec)}
+                          </span>
+                        )}
+                      </a>
+                    )}
+                  </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 ml-auto sm:ml-0">
                     <button
                       onClick={() => copyLink(link.token, link.id)}
                       title="Copy recording link"
@@ -274,35 +276,37 @@ export default function AdminDashboard() {
         {/* Recordings section */}
         {recordings.length > 0 && (
           <div className="rounded-lg bg-tl-navy-800 border border-white/[0.08] overflow-hidden">
-            <div className="border-b border-white/10 px-6 py-4">
+            <div className="border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4">
               <h2 className="text-sm font-semibold text-white">Recordings</h2>
             </div>
             <div className="divide-y divide-white/10">
               {recordings.map((link) => (
                 <div
                   key={link.id}
-                  className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:gap-4"
+                  className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:gap-4 sm:px-6"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-tl-blue/10">
-                    <Video className="h-5 w-5 text-tl-blue" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white">{link.recipientName}</p>
-                    <p className="text-xs text-white/60 mt-0.5">
-                      {link.recording!.durationSec
-                        ? `${formatDuration(link.recording!.durationSec)} · `
-                        : ""}
-                      {link.recording!.fileSizeMB
-                        ? `${link.recording!.fileSizeMB.toFixed(1)} MB · `
-                        : ""}
-                      {formatDate(link.recording!.createdAt)}
-                    </p>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-tl-blue/10">
+                      <Video className="h-5 w-5 text-tl-blue" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-white truncate">{link.recipientName}</p>
+                      <p className="text-xs text-white/60 mt-0.5 truncate">
+                        {link.recording!.durationSec
+                          ? `${formatDuration(link.recording!.durationSec)} · `
+                          : ""}
+                        {link.recording!.fileSizeMB
+                          ? `${link.recording!.fileSizeMB.toFixed(1)} MB · `
+                          : ""}
+                        {formatDate(link.recording!.createdAt)}
+                      </p>
+                    </div>
                   </div>
                   <a
                     href={link.recording!.uploadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-sm bg-tl-blue px-4 py-2 text-sm font-medium text-white hover:bg-tl-blue-700 transition-colors duration-150 ease-out"
+                    className="flex items-center justify-center gap-1.5 rounded-sm bg-tl-blue px-4 py-2 text-sm font-medium text-white hover:bg-tl-blue-700 transition-colors duration-150 ease-out w-full sm:w-auto"
                   >
                     <ExternalLink className="h-4 w-4" />
                     Open

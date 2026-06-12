@@ -112,7 +112,7 @@ export default function InviteModal({
     >
       <div className="w-full max-w-md rounded-xl bg-tl-navy-800 border border-white/[0.08] shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-tl-blue/10">
               <UserPlus className="h-4 w-4 text-tl-blue" />
@@ -138,7 +138,7 @@ export default function InviteModal({
         </div>
 
         {/* Body */}
-        <div className="px-6 py-4 space-y-4">
+        <div className="px-4 py-4 sm:px-6 space-y-4">
           <form onSubmit={handleSendInvite} className="flex gap-2">
             <Input
               ref={inputRef}
@@ -193,7 +193,7 @@ export default function InviteModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/10 px-6 py-3">
+        <div className="border-t border-white/10 px-4 py-3 sm:px-6">
           <p className="text-xs text-white/30 text-center">
             An email with the session link will be sent to the recipient
           </p>

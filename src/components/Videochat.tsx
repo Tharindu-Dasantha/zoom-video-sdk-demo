@@ -290,14 +290,14 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
     };
   }, [inSession]);
 
-  // Grid columns based on participant count
+  // Grid columns based on participant count (optimized for mobile stack vs desktop grid)
   const getGridClass = () => {
     const count = participants.length;
     if (count <= 1) return "grid-cols-1 max-w-2xl";
-    if (count === 2) return "grid-cols-2 max-w-4xl";
-    if (count <= 4) return "grid-cols-2 max-w-5xl";
-    if (count <= 6) return "grid-cols-3 max-w-6xl";
-    return "grid-cols-4 max-w-7xl";
+    if (count === 2) return "grid-cols-1 sm:grid-cols-2 max-w-4xl";
+    if (count <= 4) return "grid-cols-1 sm:grid-cols-2 max-w-5xl";
+    if (count <= 6) return "grid-cols-2 sm:grid-cols-3 max-w-6xl";
+    return "grid-cols-2 sm:grid-cols-4 max-w-7xl";
   };
 
   const currentUserId = inSession
@@ -399,7 +399,7 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
 
       {/* Bottom control bar */}
       {inSession && (
-        <footer className="flex items-center justify-center gap-3 px-4 py-4 bg-tl-navy border-t border-white/10">
+        <footer className="flex items-center justify-center gap-2 sm:gap-3 px-3 py-3 sm:px-4 sm:py-4 bg-tl-navy border-t border-white/10">
           {/* Mic toggle */}
           <button
             onClick={toggleAudio}
@@ -444,16 +444,16 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
           </button>
 
           {/* Separator */}
-          <div className="mx-2 h-8 w-px bg-white/10" />
+          <div className="mx-1 sm:mx-2 h-8 w-px bg-white/10" />
 
           {/* Leave call */}
           <button
             onClick={leaveSession}
             title="Leave call"
-            className="flex h-12 items-center gap-2 rounded-sm bg-tl-error hover:bg-tl-error/90 px-5 text-white text-sm font-medium transition-colors duration-150 ease-out"
+            className="flex h-12 w-12 sm:w-auto items-center justify-center sm:justify-start gap-2 rounded-sm bg-tl-error hover:bg-tl-error/90 px-0 sm:px-5 text-white text-sm font-medium transition-colors duration-150 ease-out"
           >
             <LogOut className="h-4 w-4" />
-            Leave
+            <span className="hidden sm:inline">Leave</span>
           </button>
         </footer>
       )}
@@ -465,8 +465,8 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
         onClose={() => setIsInviteOpen(false)}
       />
 
-      {/* Floating Kneoxt Product Pill */}
-      <KneoxtPill />
+      {/* Floating Kneoxt Product Pill (hidden on mobile to prevent overlapping controls) */}
+      <KneoxtPill className="hidden sm:flex" />
     </div>
   );
 };

@@ -30,23 +30,23 @@ export default function LandingPage() {
 
       {/* Nav */}
       <header className="border-b border-white/[0.08] backdrop-blur-sm bg-tl-navy/20 sticky top-0 z-50">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-5">
           <Logo size="md" />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white">
+              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white text-xs sm:text-sm px-2.5 sm:px-3">
                 Sign in
               </Button>
             </Link>
             <Link href="/meeting/new">
-              <Button size="sm">Start a meeting</Button>
+              <Button size="sm" className="text-xs sm:text-sm px-3 sm:px-4">Start a meeting</Button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative mx-auto max-w-6xl px-6 py-28 text-center">
+      <section className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-28 text-center">
         <h1 className="mx-auto max-w-2xl text-4xl font-bold tracking-tight text-white sm:text-6xl md:text-[68px] leading-tight">
           One link.{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#34B558] to-[#13A983]">
@@ -59,7 +59,7 @@ export default function LandingPage() {
         </p>
         <div className="mt-10 flex items-center justify-center">
           <Link href="/meeting/new">
-            <Button size="lg" className="h-12 px-8 text-base">
+            <Button size="lg" className="h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base">
               Start a meeting
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -68,7 +68,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="mx-auto max-w-6xl px-6 pb-28">
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-28">
         <div className="grid gap-6 sm:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, description }) => (
             <div
@@ -87,7 +87,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-white/[0.08]">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 sm:flex-row">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
           <p className="text-xs text-white/30">
             © {new Date().getFullYear()} tenon-Link Connect
           </p>

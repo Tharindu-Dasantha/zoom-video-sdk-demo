@@ -78,7 +78,7 @@ function MicMeter({ stream }: { stream: MediaStream | null }) {
       ref={canvasRef}
       width={200}
       height={8}
-      className="rounded-full overflow-hidden"
+      className="w-24 sm:w-48 h-2 rounded-full overflow-hidden"
     />
   );
 }
@@ -363,7 +363,7 @@ export default function RecordingFlow({ token }: { token: string }) {
 
   if (stage === "device-check") {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-tl-navy px-4 py-10">
+      <div className="flex min-h-screen flex-col items-center bg-tl-navy px-4 py-6 sm:py-10">
         <div className="w-full max-w-lg space-y-6">
           <Logo size="sm" className="justify-center" />
 
@@ -458,7 +458,7 @@ export default function RecordingFlow({ token }: { token: string }) {
   return (
     <div className="flex h-screen flex-col bg-black">
       {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-5 py-4">
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4">
         {recordingStarted ? (
           <div className="flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
             <span className="relative flex h-2.5 w-2.5">
@@ -489,8 +489,8 @@ export default function RecordingFlow({ token }: { token: string }) {
         )}
       </div>
 
-      {/* Error recovery tip */}
-      <div className="absolute bottom-24 left-4 right-4 z-10 flex justify-center">
+      {/* Error recovery tip (made bottom margin responsive to adapt to shorter portrait heights) */}
+      <div className="absolute bottom-20 sm:bottom-24 left-4 right-4 z-10 flex justify-center">
         <div className="rounded-lg bg-black/70 px-4 py-2.5 backdrop-blur-sm max-w-md text-center">
           <p className="text-xs text-white/60">
             Made a mistake?{" "}
@@ -503,7 +503,7 @@ export default function RecordingFlow({ token }: { token: string }) {
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-4 bg-gradient-to-t from-black/80 to-transparent px-4 py-6">
+      <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-3 sm:gap-4 bg-gradient-to-t from-black/80 to-transparent px-3 py-4 sm:py-6">
         {/* Mic toggle */}
         <button
           onClick={toggleAudio}
@@ -541,7 +541,8 @@ export default function RecordingFlow({ token }: { token: string }) {
           Done
         </button>
       </div>
-      <KneoxtPill />
+      {/* Floating Kneoxt Product Pill (hidden on mobile to prevent overlapping controls) */}
+      <KneoxtPill className="hidden sm:flex" />
     </div>
   );
 }

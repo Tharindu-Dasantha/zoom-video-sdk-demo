@@ -56,7 +56,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-lg bg-tl-navy-800 border border-white/[0.08] p-6 shadow-xl"
+          className="space-y-4 rounded-lg bg-tl-navy-800 border border-white/[0.08] p-5 sm:p-6 shadow-xl"
         >
           {error && (
             <div className="rounded-lg bg-tl-error/10 border border-tl-error/20 px-4 py-3 text-sm text-tl-error">

@@ -39,7 +39,7 @@ export default function NewMeetingPage() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-lg bg-tl-navy-800 p-6 shadow-xl border border-white/[0.08]"
+          className="space-y-4 rounded-lg bg-tl-navy-800 p-5 sm:p-6 shadow-xl border border-white/[0.08]"
         >
           <div className="space-y-1.5">
             <label
