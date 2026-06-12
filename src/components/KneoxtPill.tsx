@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import kneoxtLogo from "../../public/Kneoxt/kneoxt_light.svg";
 
 interface KneoxtPillProps {
   className?: string;
@@ -14,16 +15,11 @@ export default function KneoxtPill({ className }: KneoxtPillProps) {
       )}
     >
       <span className="font-light tracking-wide">Product by</span>
-      <div className="flex items-center gap-1">
-        <Image
-          src="/Kneoxt/dark.png"
-          alt="Kneoxt"
-          width={16}
-          height={16}
-          className="rounded-sm shrink-0 brightness-110"
-        />
-        <span className="font-semibold text-white tracking-tight">kneoxt</span>
-      </div>
+      <Image
+        src={kneoxtLogo}
+        alt="Kneoxt"
+        className="h-3 w-auto object-contain brightness-0 invert opacity-60 hover:opacity-100 transition-opacity duration-150"
+      />
     </div>
   );
 }

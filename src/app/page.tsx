@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import kneoxtLogo from "../../public/Kneoxt/kneoxt_light.svg";
 import Logo from "@/components/Logo";
 import { Video, Mail, MessageSquareText, ArrowRight } from "lucide-react";
 
@@ -91,16 +92,13 @@ export default function LandingPage() {
           <p className="text-xs text-white/30">
             © {new Date().getFullYear()} tenon-Link Connect
           </p>
-          <div className="flex items-center gap-2 text-xs text-white/60">
+          <div className="flex items-center gap-2 text-xs text-white/50">
             <span>A tenon-Link product by</span>
             <Image
-              src="/Kneoxt/dark.png"
+              src={kneoxtLogo}
               alt="Kneoxt"
-              width={20}
-              height={20}
-              className="rounded-sm"
+              className="h-3.5 w-auto object-contain brightness-0 invert opacity-60 hover:opacity-100 transition-opacity duration-150"
             />
-            <span className="font-medium text-white">Kneoxt</span>
           </div>
         </div>
       </footer>

@@ -6,6 +6,7 @@ import Logo from "@/components/Logo";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
+import kneoxtLogo from "../../../../public/Kneoxt/kneoxt_light.svg";
 import { ArrowRight } from "lucide-react";
 
 export default function NewMeetingPage() {
@@ -87,13 +88,10 @@ export default function NewMeetingPage() {
           <div className="flex items-center gap-2 text-xs text-white/20">
             <span>A tenon-Link product by</span>
             <Image
-              src="/Kneoxt/dark.png"
+              src={kneoxtLogo}
               alt="Kneoxt"
-              width={16}
-              height={16}
-              className="rounded-sm opacity-40 grayscale hover:opacity-100 transition-opacity"
+              className="h-3 w-auto object-contain brightness-0 invert opacity-30 hover:opacity-50 transition-opacity duration-150"
             />
-            <span className="font-medium text-white/40">Kneoxt</span>
           </div>
         </div>
       </div>

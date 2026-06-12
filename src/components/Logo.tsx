@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import logoImg from "../../public/Logo/logo.png";
 
 const SIZES = {
   sm: "h-5 sm:h-6",
@@ -17,10 +18,8 @@ export default function Logo({ size = "sm", className }: LogoProps) {
   return (
     <span className={cn("inline-flex items-center gap-2 select-none", className)}>
       <Image
-        src="/Logo/logo.png"
+        src={logoImg}
         alt="tenon-Link Connect"
-        width={2206}
-        height={543}
         priority
         className={cn(SIZES[size], "w-auto object-contain")}
       />

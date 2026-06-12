@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import kneoxtLogo from "../../../public/Kneoxt/kneoxt_light.svg";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,16 +113,13 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="flex items-center justify-center gap-2 text-xs text-white/30">
+        <div className="flex items-center justify-center gap-2 text-xs text-white/30 hover:text-white/40 transition-colors">
           <span>A tenon-Link product by</span>
           <Image
-            src="/Kneoxt/dark.png"
+            src={kneoxtLogo}
             alt="Kneoxt"
-            width={16}
-            height={16}
-            className="rounded-sm opacity-60 grayscale hover:opacity-100 transition-opacity"
+            className="h-3 w-auto object-contain brightness-0 invert opacity-40 hover:opacity-60 transition-opacity duration-150"
           />
-          <span className="font-medium text-white/50">Kneoxt</span>
         </div>
       </div>
     </main>
