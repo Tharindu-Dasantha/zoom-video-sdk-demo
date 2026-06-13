@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   // Zoom endpoint validation handshake (required when first saving webhook URL)
   if (payload.event === "endpoint.url_validation") {
-    const { plainToken } = (payload.payload as Record<string, string>);
+    const { plainToken } = payload.payload as Record<string, string>;
     const encryptedToken = crypto
       .createHmac("sha256", process.env.ZOOM_WEBHOOK_SECRET_TOKEN ?? "")
       .update(plainToken)
@@ -45,82 +45,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const session = payload.payload as {
-    object: {
-      uuid: string;
-      topic: string;
-      duration: number;
-      download_access_token: string;
-      recording_files: Array<{
-        file_type: string;
-        download_url: string;
-        file_size: number;
-        status: string;
-        recording_type: string;
-      }>;
-    };
-  };
-
-  const { uuid, topic, duration, download_access_token, recording_files } =
-    session.object;
-
-  // topic is the Zoom session name — which equals our testimonial token
-  const link = await prisma.testimonialLink.findUnique({ where: { token: topic } });
-  if (!link) {
-    // Not a testimonial session — ignore silently
-    return NextResponse.json({ received: true });
-  }
-
-  // Prefer the combined speaker-view MP4, fall back to any MP4
-  const mp4 =
-    recording_files?.find(
-      (f) =>
-        f.file_type === "MP4" &&
-        f.status === "completed" &&
-        f.recording_type === "shared_screen_with_speaker_view"
-    ) ??
-    recording_files?.find(
-      (f) => f.file_type === "MP4" && f.status === "completed"
-    );
-
-  if (!mp4) {
-    console.warn(`[webhook] No completed MP4 found for session ${topic}`);
-    return NextResponse.json({ received: true });
-  }
-
-  try {
-    // Store a reference to Zoom's cloud recording rather than re-uploading the
-    // file anywhere. `download_access_token` is Zoom's time-limited token used
-    // to fetch the file; we keep the bare download URL + token separately so we
-    // can build an authenticated request server-side when the admin views it.
-    const recordingData = {
-      uploadUrl: mp4.download_url,
-      downloadToken: download_access_token,
-      zoomSessionId: uuid,
-      durationSec: duration ? duration * 60 : null,
-      fileSizeMB: mp4.file_size ? mp4.file_size / (1024 * 1024) : null,
-    };
-
-    await prisma.$transaction([
-      prisma.recording.upsert({
-        where: { linkId: link.id },
-        create: { linkId: link.id, ...recordingData },
-        update: recordingData,
-      }),
-      prisma.testimonialLink.update({
-        where: { id: link.id },
+  // We don't store or serve recordings — the admin downloads them straight from
+  // Zoom's recording tab. The link is already marked COMPLETED when the user
+  // presses Done, so this just acts as a safety net in case that PATCH was
+  // missed (topic is the Zoom session name, which equals our token).
+  const session = payload.payload as { object: { topic: string } };
+  const topic = session.object?.topic;
+  if (topic) {
+    await prisma.testimonialLink
+      .updateMany({
+        where: { token: topic, status: { not: "COMPLETED" } },
         data: { status: "COMPLETED" },
-      }),
-    ]);
-
-    console.log(`[webhook] Recording linked for ${link.recipientName}: ${mp4.download_url}`);
-  } catch (error) {
-    console.error("[webhook] Failed to save recording reference:", error);
-    // DB failures are often transient. Return 5xx so Zoom retries delivery.
-    return NextResponse.json(
-      { error: "Failed to process recording" },
-      { status: 500 }
-    );
+      })
+      .catch(() => {});
   }
 
   return NextResponse.json({ received: true });

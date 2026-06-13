@@ -11,24 +11,15 @@ import {
   Check,
   Video,
   Clock,
-  ExternalLink,
   X,
   Loader2,
   Users,
   CheckCircle2,
   CircleDot,
-  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
-
-interface Recording {
-  id: string;
-  durationSec: number | null;
-  fileSizeMB: number | null;
-  createdAt: string;
-}
 
 interface TestimonialLink {
   id: string;
@@ -37,7 +28,6 @@ interface TestimonialLink {
   recipientEmail: string | null;
   status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
   createdAt: string;
-  recording: Recording | null;
 }
 
 function StatusBadge({ status }: { status: TestimonialLink["status"] }) {
@@ -63,13 +53,6 @@ function StatusBadge({ status }: { status: TestimonialLink["status"] }) {
       Pending
     </span>
   );
-}
-
-function formatDuration(sec: number | null) {
-  if (!sec) return "—";
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
 }
 
 function formatDate(iso: string) {
@@ -155,7 +138,6 @@ export default function AdminDashboard() {
   const pending = links.filter((l) => l.status === "PENDING").length;
   const inProgress = links.filter((l) => l.status === "IN_PROGRESS").length;
   const completed = links.filter((l) => l.status === "COMPLETED").length;
-  const recordings = links.filter((l) => l.recording);
 
   return (
     <div className="relative min-h-screen flex flex-col bg-tl-navy overflow-hidden">
@@ -298,33 +280,6 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between gap-2 sm:contents">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <StatusBadge status={link.status} />
-
-                      {link.recording ? (
-                        <a
-                          href={`/api/admin/recordings/${link.recording.id}/download?inline=1`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 rounded-full bg-[#13A983]/10 px-3 py-1.5 text-xs font-medium text-[#13A983] border border-[#13A983]/10 hover:bg-[#13A983]/20 transition-all duration-150 ease-out"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          View recording
-                          {link.recording.durationSec && (
-                            <span className="text-white/40 font-mono">
-                              · {formatDuration(link.recording.durationSec)}
-                            </span>
-                          )}
-                        </a>
-                      ) : (
-                        link.status === "COMPLETED" && (
-                          <span
-                            className="flex items-center gap-1.5 rounded-full bg-[#F59E0B]/10 px-3 py-1.5 text-xs font-medium text-[#F59E0B] border border-[#F59E0B]/10"
-                            title="The session has ended. Zoom is rendering the cloud recording — this can take a few minutes. Refresh to check again."
-                          >
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            Recording processing…
-                          </span>
-                        )
-                      )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
@@ -359,60 +314,6 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Recordings section */}
-        {recordings.length > 0 && (
-          <div className="rounded-xl bg-tl-navy-800/40 border border-white/[0.06] backdrop-blur-md shadow-xl overflow-hidden">
-            <div className="border-b border-white/[0.06] px-5 py-4 sm:px-6">
-              <h2 className="text-base font-semibold text-white">Recordings</h2>
-              <p className="text-xs text-white/40 mt-0.5">Access uploaded client video testimonials</p>
-            </div>
-            <div className="divide-y divide-white/[0.06]">
-              {recordings.map((link) => (
-                <div
-                  key={link.id}
-                  className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:gap-6 sm:px-6 hover:bg-white/[0.01] transition-all duration-200"
-                >
-                  <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#13A983]/10 border border-[#13A983]/15">
-                      <Video className="h-5 w-5 text-[#13A983]" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-white text-sm sm:text-base truncate">{link.recipientName}</p>
-                      <p className="text-xs text-white/40 mt-1 truncate">
-                        {link.recording!.durationSec
-                          ? `${formatDuration(link.recording!.durationSec)} · `
-                          : ""}
-                        {link.recording!.fileSizeMB
-                          ? `${link.recording!.fileSizeMB.toFixed(1)} MB · `
-                          : ""}
-                        Uploaded {formatDate(link.recording!.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <a
-                      href={`/api/admin/recordings/${link.recording!.id}/download?inline=1`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1.5 rounded-lg bg-[#13A983] px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-tl-blue-700 shadow-md shadow-[#13A983]/15 hover:scale-[1.02] active:scale-[0.98] transition-all flex-1 sm:flex-none text-center"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Open Video
-                    </a>
-                    <a
-                      href={`/api/admin/recordings/${link.recording!.id}/download`}
-                      className="flex items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] hover:bg-white/[0.06] px-4 py-2 text-xs sm:text-sm font-semibold text-white/80 hover:text-white transition-all active:scale-[0.98] text-center"
-                      title="Download recording"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </main>
 
       {/* Create Link Modal */}
