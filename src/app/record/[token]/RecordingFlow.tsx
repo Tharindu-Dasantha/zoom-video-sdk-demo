@@ -489,8 +489,8 @@ export default function RecordingFlow({ token }: { token: string }) {
         )}
       </div>
 
-      {/* Error recovery tip (made bottom margin responsive to adapt to shorter portrait heights) */}
-      <div className="absolute bottom-20 sm:bottom-24 left-4 right-4 z-10 flex justify-center">
+      {/* Error recovery tip (offset clears the controls bar with a visible gap) */}
+      <div className="absolute bottom-24 sm:bottom-28 left-4 right-4 z-10 flex justify-center">
         <div className="rounded-lg bg-black/70 px-4 py-2.5 backdrop-blur-sm max-w-md text-center">
           <p className="text-xs text-white/60">
             Made a mistake?{" "}

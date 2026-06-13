@@ -287,51 +287,53 @@ export default function AdminDashboard() {
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <StatusBadge status={link.status} />
+                  <div className="flex items-center justify-between gap-2 sm:contents">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                      <StatusBadge status={link.status} />
 
-                    {link.recording && (
-                      <a
-                        href={link.recording.uploadUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 rounded-full bg-[#13A983]/10 px-3 py-1.5 text-xs font-medium text-[#13A983] border border-[#13A983]/10 hover:bg-[#13A983]/20 transition-all duration-150 ease-out"
+                      {link.recording && (
+                        <a
+                          href={link.recording.uploadUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 rounded-full bg-[#13A983]/10 px-3 py-1.5 text-xs font-medium text-[#13A983] border border-[#13A983]/10 hover:bg-[#13A983]/20 transition-all duration-150 ease-out"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          View recording
+                          {link.recording.durationSec && (
+                            <span className="text-white/40 font-mono">
+                              · {formatDuration(link.recording.durationSec)}
+                            </span>
+                          )}
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => copyLink(link.token, link.id)}
+                        title="Copy recording link"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.06] text-white/60 hover:text-white transition-all duration-150 ease-out"
                       >
-                        <ExternalLink className="h-3 w-3" />
-                        View recording
-                        {link.recording.durationSec && (
-                          <span className="text-white/40 font-mono">
-                            · {formatDuration(link.recording.durationSec)}
-                          </span>
+                        {copiedId === link.id ? (
+                          <Check className="h-4 w-4 text-[#10B981]" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
                         )}
-                      </a>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 ml-auto sm:ml-0">
-                    <button
-                      onClick={() => copyLink(link.token, link.id)}
-                      title="Copy recording link"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.06] text-white/60 hover:text-white transition-all duration-150 ease-out"
-                    >
-                      {copiedId === link.id ? (
-                        <Check className="h-4 w-4 text-[#10B981]" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => deleteLink(link.id)}
-                      disabled={deletingId === link.id}
-                      title="Delete link"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/[0.02] hover:bg-tl-error/10 text-white/60 hover:text-[#EF4444] transition-all duration-150 ease-out disabled:opacity-50"
-                    >
-                      {deletingId === link.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </button>
+                      </button>
+                      <button
+                        onClick={() => deleteLink(link.id)}
+                        disabled={deletingId === link.id}
+                        title="Delete link"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/[0.02] hover:bg-tl-error/10 text-white/60 hover:text-[#EF4444] transition-all duration-150 ease-out disabled:opacity-50"
+                      >
+                        {deletingId === link.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
