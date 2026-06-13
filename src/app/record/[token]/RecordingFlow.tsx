@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import KneoxtPill from "@/components/KneoxtPill";
+import { attachVideoElement } from "@/lib/zoom-video";
 import engageLogo from "../../../../public/engage/logo.png";
 
 type Stage =
@@ -181,9 +182,7 @@ export default function RecordingFlow({ token }: { token: string }) {
               const el = await ms.attachVideo(payload.userId, VideoQuality.Video_720P);
               const currentId = zoomClient.getCurrentUserInfo()?.userId;
               if (payload.userId === currentId && selfVideoRef.current) {
-                selfVideoRef.current.innerHTML = "";
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                selfVideoRef.current.appendChild(el as any);
+                attachVideoElement(selfVideoRef.current, el as unknown as HTMLElement);
               }
             } catch (err) {
               console.warn("attach video error", err);
@@ -211,9 +210,7 @@ export default function RecordingFlow({ token }: { token: string }) {
           const userId = zoomClient.getCurrentUserInfo().userId;
           const el = await mediaStream.attachVideo(userId, VideoQuality.Video_720P);
           if (selfVideoRef.current) {
-            selfVideoRef.current.innerHTML = "";
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            selfVideoRef.current.appendChild(el as any);
+            attachVideoElement(selfVideoRef.current, el as unknown as HTMLElement);
           }
         } catch (err) {
           console.warn("self attach error", err);
@@ -255,9 +252,7 @@ export default function RecordingFlow({ token }: { token: string }) {
             const userId = zoomClient.getCurrentUserInfo().userId;
             const el = await ms.attachVideo(userId, VideoQuality.Video_720P);
             if (selfVideoRef.current) {
-              selfVideoRef.current.innerHTML = "";
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              selfVideoRef.current.appendChild(el as any);
+              attachVideoElement(selfVideoRef.current, el as unknown as HTMLElement);
             }
           } catch (err) {
             console.warn(err);
@@ -495,10 +490,7 @@ export default function RecordingFlow({ token }: { token: string }) {
 
       {/* Self-view video */}
       <div className="relative flex-1 overflow-hidden">
-        <div
-          ref={selfVideoRef}
-          className="h-full w-full [&>video-player]:h-full [&>video-player]:w-full [&>video-player]:object-cover"
-        />
+        <div ref={selfVideoRef} className="h-full w-full" />
         {isVideoMuted && (
           <div className="absolute inset-0 flex items-center justify-center bg-tl-navy">
             <VideoOff className="h-16 w-16 text-white/30" />

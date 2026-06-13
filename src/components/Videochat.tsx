@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import ZoomVideo, {
   VideoQuality,
-  type VideoPlayer,
   type VideoClient,
   type Participant,
 } from "@zoom/videosdk";
@@ -20,6 +19,8 @@ import {
 import InviteModal from "./InviteModal";
 import Logo from "./Logo";
 import KneoxtPill from "./KneoxtPill";
+import { attachVideoElement } from "@/lib/zoom-video";
+import { cn } from "@/lib/utils";
 
 // Create client once at module level
 const client: typeof VideoClient = ZoomVideo.createClient();
@@ -52,29 +53,24 @@ interface ParticipantTileProps {
   participant: Participant;
   isSelf: boolean;
   videoRef?: React.RefObject<HTMLDivElement | null>;
+  fill?: boolean;
 }
 
-function ParticipantTile({ participant, isSelf, videoRef }: ParticipantTileProps) {
+function ParticipantTile({ participant, isSelf, videoRef, fill }: ParticipantTileProps) {
   const displayName = participant.displayName || "Guest";
   const hasVideo = participant.bVideoOn;
   const isMuted = participant.muted;
   const color = getAvatarColor(displayName);
 
   return (
-    <div className="relative flex items-center justify-center rounded-lg bg-tl-navy-700 overflow-hidden aspect-video">
+    <div
+      className={cn(
+        "relative flex items-center justify-center rounded-lg bg-tl-navy-700 overflow-hidden",
+        fill ? "h-full w-full" : "aspect-video"
+      )}
+    >
       {/* Video element container (SDK attaches video here) */}
-      {hasVideo && isSelf && (
-        <div
-          ref={videoRef}
-          className="absolute inset-0 [&>video-player]:w-full [&>video-player]:h-full [&>video-player]:object-cover"
-        />
-      )}
-      {hasVideo && !isSelf && (
-        <div
-          ref={videoRef}
-          className="absolute inset-0 [&>video-player]:w-full [&>video-player]:h-full [&>video-player]:object-cover"
-        />
-      )}
+      {hasVideo && <div ref={videoRef} className="absolute inset-0" />}
 
       {/* Avatar fallback when video is off */}
       {!hasVideo && (
@@ -143,9 +139,7 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
           : videoRefsMap.current.get(userId);
 
         if (container) {
-          // Clear existing video elements
-          container.innerHTML = "";
-          container.appendChild(userVideo as VideoPlayer);
+          attachVideoElement(container, userVideo as unknown as HTMLElement);
         }
       } catch (e) {
         console.error("Error attaching video:", e instanceof Error ? e.message : String(e));
@@ -293,7 +287,7 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
   // Grid columns based on participant count (optimized for mobile stack vs desktop grid)
   const getGridClass = () => {
     const count = participants.length;
-    if (count <= 1) return "grid-cols-1 max-w-2xl";
+    if (count <= 1) return "grid-cols-1 h-full";
     if (count === 2) return "grid-cols-1 sm:grid-cols-2 max-w-4xl";
     if (count <= 4) return "grid-cols-1 sm:grid-cols-2 max-w-5xl";
     if (count <= 6) return "grid-cols-2 sm:grid-cols-3 max-w-6xl";
@@ -371,7 +365,7 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
         ) : (
           /* Participant grid */
           <div
-            className={`mx-auto grid w-full gap-3 ${getGridClass()}`}
+            className={`mx-auto grid w-full h-full gap-3 ${getGridClass()}`}
           >
             {participants.map((participant) => {
               const isSelf = participant.userId === currentUserId;
@@ -380,6 +374,7 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
                   key={participant.userId}
                   participant={participant}
                   isSelf={isSelf}
+                  fill={participants.length === 1}
                   videoRef={
                     isSelf
                       ? selfVideoRef
