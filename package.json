@@ -11,7 +11,8 @@
     "build": "next build",
     "start": "prisma migrate deploy && next start",
     "lint": "eslint .",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "create-admin": "tsx prisma/create-admin.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

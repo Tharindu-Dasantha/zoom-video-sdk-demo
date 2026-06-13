@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import ZoomVideo, { VideoQuality, type VideoClient } from "@zoom/videosdk";
 import {
   Mic,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import KneoxtPill from "@/components/KneoxtPill";
+import engageLogo from "../../../../public/engage/logo.png";
 
 type Stage =
   | "loading"      // fetching session details
@@ -366,6 +368,21 @@ export default function RecordingFlow({ token }: { token: string }) {
       <div className="flex min-h-screen flex-col items-center bg-tl-navy px-4 py-6 sm:py-10">
         <div className="w-full max-w-lg space-y-6">
           <Logo size="sm" className="justify-center" />
+
+          {/* Engage Financial Solutions branding */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="rounded-lg bg-white px-5 py-3">
+              <Image
+                src={engageLogo}
+                alt="Engage Financial Solutions"
+                className="h-8 sm:h-10 w-auto object-contain"
+              />
+            </div>
+            <p className="text-center text-sm text-white/70 max-w-sm">
+              You&apos;re recording a video message for Engage Financial Solutions&apos;{" "}
+              <span className="text-white font-medium">25th Anniversary</span> celebration.
+            </p>
+          </div>
 
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-semibold text-white">
