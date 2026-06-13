@@ -25,7 +25,6 @@ import Logo from "@/components/Logo";
 
 interface Recording {
   id: string;
-  uploadUrl: string;
   durationSec: number | null;
   fileSizeMB: number | null;
   createdAt: string;
@@ -302,7 +301,7 @@ export default function AdminDashboard() {
 
                       {link.recording ? (
                         <a
-                          href={link.recording.uploadUrl}
+                          href={`/api/admin/recordings/${link.recording.id}/download?inline=1`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1.5 rounded-full bg-[#13A983]/10 px-3 py-1.5 text-xs font-medium text-[#13A983] border border-[#13A983]/10 hover:bg-[#13A983]/20 transition-all duration-150 ease-out"
@@ -392,7 +391,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
                     <a
-                      href={link.recording!.uploadUrl}
+                      href={`/api/admin/recordings/${link.recording!.id}/download?inline=1`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-1.5 rounded-lg bg-[#13A983] px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-tl-blue-700 shadow-md shadow-[#13A983]/15 hover:scale-[1.02] active:scale-[0.98] transition-all flex-1 sm:flex-none text-center"

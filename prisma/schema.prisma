@@ -22,8 +22,13 @@ model Recording {
   id            String          @id @default(cuid())
   linkId        String          @unique
   link          TestimonialLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  // The recording lives in Zoom's cloud — it is not re-uploaded anywhere.
+  // `uploadUrl` holds Zoom's download URL and `downloadToken` Zoom's
+  // time-limited access token used to fetch it. `fileKey` is legacy (the old
+  // UploadThing key) and is no longer written.
   uploadUrl     String
-  fileKey       String
+  downloadToken String?
+  fileKey       String?
   zoomSessionId String?
   durationSec   Int?
   fileSizeMB    Float?

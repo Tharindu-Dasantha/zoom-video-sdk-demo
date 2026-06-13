@@ -9,7 +9,18 @@ export async function GET() {
   }
 
   const links = await prisma.testimonialLink.findMany({
-    include: { recording: true },
+    // Never expose the Zoom downloadToken (or other internal fields) to the
+    // client — recordings are fetched through the server-side proxy route.
+    include: {
+      recording: {
+        select: {
+          id: true,
+          durationSec: true,
+          fileSizeMB: true,
+          createdAt: true,
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 

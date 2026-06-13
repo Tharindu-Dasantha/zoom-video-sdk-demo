@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
-import { utapi } from "@/lib/uploadthing";
-
-// Allow up to 5 minutes for downloading + uploading large recording files
-export const maxDuration = 300;
 
 function verifySignature(
   rawBody: string,
@@ -93,36 +89,23 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const downloadUrl = `${mp4.download_url}?access_token=${download_access_token}`;
-    const safeName = link.recipientName.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-]/g, "");
-    const filename = `testimonial-${safeName}-${Date.now()}.mp4`;
-
-    const [uploadResult] = await utapi.uploadFilesFromUrl([
-      { url: downloadUrl, name: filename },
-    ]);
-
-    if (!uploadResult || uploadResult.error) {
-      throw new Error(uploadResult?.error?.message ?? "Upload failed");
-    }
+    // Store a reference to Zoom's cloud recording rather than re-uploading the
+    // file anywhere. `download_access_token` is Zoom's time-limited token used
+    // to fetch the file; we keep the bare download URL + token separately so we
+    // can build an authenticated request server-side when the admin views it.
+    const recordingData = {
+      uploadUrl: mp4.download_url,
+      downloadToken: download_access_token,
+      zoomSessionId: uuid,
+      durationSec: duration ? duration * 60 : null,
+      fileSizeMB: mp4.file_size ? mp4.file_size / (1024 * 1024) : null,
+    };
 
     await prisma.$transaction([
       prisma.recording.upsert({
         where: { linkId: link.id },
-        create: {
-          linkId: link.id,
-          uploadUrl: uploadResult.data.url,
-          fileKey: uploadResult.data.key,
-          zoomSessionId: uuid,
-          durationSec: duration ? duration * 60 : null,
-          fileSizeMB: mp4.file_size ? mp4.file_size / (1024 * 1024) : null,
-        },
-        update: {
-          uploadUrl: uploadResult.data.url,
-          fileKey: uploadResult.data.key,
-          zoomSessionId: uuid,
-          durationSec: duration ? duration * 60 : null,
-          fileSizeMB: mp4.file_size ? mp4.file_size / (1024 * 1024) : null,
-        },
+        create: { linkId: link.id, ...recordingData },
+        update: recordingData,
       }),
       prisma.testimonialLink.update({
         where: { id: link.id },
@@ -130,11 +113,10 @@ export async function POST(request: NextRequest) {
       }),
     ]);
 
-    console.log(`[webhook] Recording saved for ${link.recipientName}: ${uploadResult.data.url}`);
+    console.log(`[webhook] Recording linked for ${link.recipientName}: ${mp4.download_url}`);
   } catch (error) {
-    console.error("[webhook] Failed to process recording:", error);
-    // Download/upload/DB failures are often transient. Return 5xx so Zoom
-    // retries delivery rather than dropping the recording on the floor.
+    console.error("[webhook] Failed to save recording reference:", error);
+    // DB failures are often transient. Return 5xx so Zoom retries delivery.
     return NextResponse.json(
       { error: "Failed to process recording" },
       { status: 500 }
