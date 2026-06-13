@@ -1,12 +1,16 @@
 import "server-only";
 import { KJUR } from "jsrsasign";
 
-export function getData(slug: string): string {
+// role 1 = host (can start cloud recording and end the session for everyone),
+// role 0 = participant. Defaults to host so callers that don't care (e.g. the
+// testimonial recorder, which must be able to start cloud recording) keep
+// working unchanged.
+export function getData(slug: string, role: number = 1): string {
   if (!slug || slug.trim() === "") {
     throw new Error("Session name is required");
   }
 
-  return generateSignature(slug.trim(), 1);
+  return generateSignature(slug.trim(), role);
 }
 
 function generateSignature(sessionName: string, role: number): string {

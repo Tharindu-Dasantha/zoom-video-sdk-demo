@@ -30,17 +30,34 @@ export async function GET(
   });
 }
 
-// Called by the client when the user joins to mark link IN_PROGRESS
+// Called by the client to advance the link's lifecycle:
+//   action "start"    → PENDING → IN_PROGRESS (user joined)
+//   action "complete" → PENDING/IN_PROGRESS → COMPLETED (user pressed Done)
+//
+// Marking COMPLETED here makes the link single-use the moment the recorder
+// finishes, rather than waiting for Zoom's recording.completed webhook (which
+// can lag by minutes or never fire if recording failed to start). The webhook
+// later upserts the recording file onto the already-completed link.
 export async function PATCH(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
 
-  await prisma.testimonialLink.updateMany({
-    where: { token, status: "PENDING" },
-    data: { status: "IN_PROGRESS" },
-  });
+  const body = await request.json().catch(() => ({}));
+  const action = body?.action === "complete" ? "complete" : "start";
+
+  if (action === "complete") {
+    await prisma.testimonialLink.updateMany({
+      where: { token, status: { in: ["PENDING", "IN_PROGRESS"] } },
+      data: { status: "COMPLETED" },
+    });
+  } else {
+    await prisma.testimonialLink.updateMany({
+      where: { token, status: "PENDING" },
+      data: { status: "IN_PROGRESS" },
+    });
+  }
 
   return NextResponse.json({ success: true });
 }

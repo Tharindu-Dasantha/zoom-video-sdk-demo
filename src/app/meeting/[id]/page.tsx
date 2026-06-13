@@ -6,15 +6,19 @@ import Script from "next/script";
 
 export default async function Page(props: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ name?: string }>;
+  searchParams: Promise<{ name?: string; host?: string }>;
 }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const userName = searchParams.name?.trim() || "Guest";
+  // The meeting creator arrives from /meeting/new with host=1 and joins as the
+  // Zoom host; invitees open a plain link and join as participants. When the
+  // host leaves they end the session for everyone.
+  const isHost = searchParams.host === "1";
 
   let jwt: string;
   try {
-    jwt = getData(params.id);
+    jwt = getData(params.id, isHost ? 1 : 0);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to generate token";
@@ -45,6 +49,7 @@ export default async function Page(props: {
         slug={params.id}
         JWT={jwt}
         userName={userName}
+        isHost={isHost}
       />
       <Script src="/coi-serviceworker.js" strategy="beforeInteractive" />
     </>

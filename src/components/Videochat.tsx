@@ -100,8 +100,13 @@ function ParticipantTile({ participant, isSelf, videoRef, fill }: ParticipantTil
   );
 }
 
-const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
-  const { slug: session, JWT: jwt, userName } = props;
+const Videochat = (props: {
+  slug: string;
+  JWT: string;
+  userName: string;
+  isHost: boolean;
+}) => {
+  const { slug: session, JWT: jwt, userName, isHost } = props;
   const [inSession, setInSession] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,6 +167,32 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
     }
   }, []);
 
+  // Stable handler references so they can actually be removed in leaveSession —
+  // passing a fresh inline function to client.off() would never match.
+  const handlePeerVideoStateChange = useCallback(
+    (payload: { action: "Start" | "Stop"; userId: number }) => {
+      if (payload.action === "Start") {
+        attachVideoToTile(payload.userId);
+      } else {
+        detachVideoFromTile(payload.userId);
+      }
+      refreshParticipants();
+    },
+    [attachVideoToTile, detachVideoFromTile, refreshParticipants]
+  );
+
+  const handleUserChange = useCallback(() => {
+    refreshParticipants();
+  }, [refreshParticipants]);
+
+  // When the host ends the session, every remaining participant receives a
+  // "Closed" connection change and is sent back home — they can't linger.
+  const handleConnectionChange = useCallback((payload: { state: string }) => {
+    if (payload.state === "Closed") {
+      window.location.href = "/";
+    }
+  }, []);
+
   const joinSession = async () => {
     setIsLoading(true);
     setError(null);
@@ -169,20 +200,11 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
       await client.init("en-US", "Global", { patchJsMedia: true });
 
       // Listen for participant changes
-      client.on(
-        "peer-video-state-change",
-        (payload: { action: "Start" | "Stop"; userId: number }) => {
-          if (payload.action === "Start") {
-            attachVideoToTile(payload.userId);
-          } else {
-            detachVideoFromTile(payload.userId);
-          }
-          refreshParticipants();
-        }
-      );
-      client.on("user-added", () => refreshParticipants());
-      client.on("user-removed", () => refreshParticipants());
-      client.on("user-updated", () => refreshParticipants());
+      client.on("peer-video-state-change", handlePeerVideoStateChange);
+      client.on("user-added", handleUserChange);
+      client.on("user-removed", handleUserChange);
+      client.on("user-updated", handleUserChange);
+      client.on("connection-change", handleConnectionChange);
 
       await client.join(session, jwt, userName);
       setInSession(true);
@@ -263,11 +285,14 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
 
   const leaveSession = async () => {
     try {
-      client.off("peer-video-state-change", () => {});
-      client.off("user-added", () => {});
-      client.off("user-removed", () => {});
-      client.off("user-updated", () => {});
-      await client.leave();
+      client.off("peer-video-state-change", handlePeerVideoStateChange);
+      client.off("user-added", handleUserChange);
+      client.off("user-removed", handleUserChange);
+      client.off("user-updated", handleUserChange);
+      client.off("connection-change", handleConnectionChange);
+      // Host leaving ends the session for all participants; a participant
+      // leaving only removes themselves.
+      await client.leave(isHost);
     } catch (e) {
       console.warn("Error leaving session:", e instanceof Error ? e.message : String(e));
     } finally {
@@ -279,10 +304,10 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
   useEffect(() => {
     return () => {
       if (inSession) {
-        client.leave().catch(() => {});
+        client.leave(isHost).catch(() => {});
       }
     };
-  }, [inSession]);
+  }, [inSession, isHost]);
 
   // Grid columns based on participant count (optimized for mobile stack vs desktop grid).
   // On mobile, `auto-rows-fr` divides the available height evenly across rows so tiles
@@ -388,8 +413,7 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
                           current: videoRefsMap.current.get(
                             participant.userId
                           ) ?? null,
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        } as any
+                        } as React.RefObject<HTMLDivElement | null>
                   }
                 />
               );

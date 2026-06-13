@@ -105,6 +105,9 @@ export default function RecordingFlow({ token }: { token: string }) {
   const [elapsedSec, setElapsedSec] = useState(0);
   const selfVideoRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>(null);
+  const peerVideoHandlerRef = useRef<
+    ((payload: { action: "Start" | "Stop"; userId: number }) => void) | null
+  >(null);
 
   // Fetch session details on mount
   useEffect(() => {
@@ -173,28 +176,34 @@ export default function RecordingFlow({ token }: { token: string }) {
     try {
       await zoomClient.init("en-US", "Global", { patchJsMedia: true });
 
-      zoomClient.on(
-        "peer-video-state-change",
-        async (payload: { action: "Start" | "Stop"; userId: number }) => {
-          if (payload.action === "Start") {
-            try {
-              const ms = zoomClient.getMediaStream();
-              const el = await ms.attachVideo(payload.userId, VideoQuality.Video_720P);
-              const currentId = zoomClient.getCurrentUserInfo()?.userId;
-              if (payload.userId === currentId && selfVideoRef.current) {
-                attachVideoElement(selfVideoRef.current, el as unknown as HTMLElement);
-              }
-            } catch (err) {
-              console.warn("attach video error", err);
+      const handlePeerVideo = async (payload: {
+        action: "Start" | "Stop";
+        userId: number;
+      }) => {
+        if (payload.action === "Start") {
+          try {
+            const ms = zoomClient.getMediaStream();
+            const el = await ms.attachVideo(payload.userId, VideoQuality.Video_720P);
+            const currentId = zoomClient.getCurrentUserInfo()?.userId;
+            if (payload.userId === currentId && selfVideoRef.current) {
+              attachVideoElement(selfVideoRef.current, el as unknown as HTMLElement);
             }
+          } catch (err) {
+            console.warn("attach video error", err);
           }
         }
-      );
+      };
+      peerVideoHandlerRef.current = handlePeerVideo;
+      zoomClient.on("peer-video-state-change", handlePeerVideo);
 
       await zoomClient.join(session.sessionName, session.jwt, session.recipientName);
 
       // Mark link as IN_PROGRESS
-      fetch(`/api/record/${token}`, { method: "PATCH" }).catch(() => {});
+      fetch(`/api/record/${token}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "start" }),
+      }).catch(() => {});
 
       const mediaStream = zoomClient.getMediaStream();
 
@@ -284,13 +293,35 @@ export default function RecordingFlow({ token }: { token: string }) {
 
   const finishRecording = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
+
+    // Show the thank-you screen immediately; teardown happens in the background.
+    setStage("done");
+
+    // Burn the link the moment the user finishes — single-use, enforced here
+    // rather than waiting on Zoom's recording.completed webhook.
+    fetch(`/api/record/${token}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "complete" }),
+    }).catch(() => {});
+
+    if (recordingStarted) {
+      try {
+        await zoomClient.getRecordingClient().stopCloudRecording();
+      } catch (err) {
+        console.warn("stop recording error", err);
+      }
+    }
+
     try {
-      zoomClient.off("peer-video-state-change", () => {});
+      if (peerVideoHandlerRef.current) {
+        zoomClient.off("peer-video-state-change", peerVideoHandlerRef.current);
+        peerVideoHandlerRef.current = null;
+      }
       await zoomClient.leave();
     } catch (err) {
       console.warn(err);
     }
-    setStage("done");
   };
 
   // Cleanup on unmount

@@ -19,7 +19,9 @@ export default function NewMeetingPage() {
     const trimmedSession = sessionName.trim();
     const trimmedName = userName.trim();
     if (trimmedSession && trimmedName) {
-      const params = new URLSearchParams({ name: trimmedName });
+      // The person starting the meeting joins as host; invitees open a plain
+      // link (no host flag) and join as participants.
+      const params = new URLSearchParams({ name: trimmedName, host: "1" });
       router.push(
         `/meeting/${encodeURIComponent(trimmedSession)}?${params.toString()}`
       );
