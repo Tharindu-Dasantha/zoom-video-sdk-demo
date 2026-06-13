@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
       await jwtVerify(token, secret);
     } catch {
       const res = NextResponse.redirect(resolveUrl("/login", request));
-      res.cookies.delete("admin_token");
+      res.cookies.delete({ name: "admin_token", path: "/" });
       return res;
     }
   }

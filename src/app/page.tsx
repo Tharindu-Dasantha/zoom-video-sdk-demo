@@ -92,14 +92,14 @@ export default function LandingPage() {
           <p className="text-xs text-white/30">
             © {new Date().getFullYear()} tenon-Link Connect
           </p>
-          <div className="flex items-center gap-2 text-xs text-white/50">
+          <Link href="https://www.kneoxt.com" target="_blank" className="flex items-center gap-2 text-xs text-white/50">
             <span>A tenon-Link product by</span>
             <Image
               src={kneoxtLogo}
               alt="Kneoxt"
               className="h-3.5 w-auto object-contain brightness-0 invert opacity-60 hover:opacity-100 transition-opacity duration-150"
             />
-          </div>
+          </Link>
         </div>
       </footer>
     </div>
