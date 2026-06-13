@@ -212,19 +212,8 @@ export default function RecordingFlow({ token }: { token: string }) {
 
       await mediaStream.startVideo();
       setIsVideoMuted(false);
-
-      // Attach self-view
-      setTimeout(async () => {
-        try {
-          const userId = zoomClient.getCurrentUserInfo().userId;
-          const el = await mediaStream.attachVideo(userId, VideoQuality.Video_720P);
-          if (selfVideoRef.current) {
-            attachVideoElement(selfVideoRef.current, el as unknown as HTMLElement);
-          }
-        } catch (err) {
-          console.warn("self attach error", err);
-        }
-      }, 400);
+      // The self-view is attached by an effect once we're in the "recording"
+      // stage (so selfVideoRef's container is mounted) — see below.
 
       // Start cloud recording. This is the entire point of the session, so a
       // failure here must NOT silently continue — otherwise the attendee would
@@ -273,18 +262,9 @@ export default function RecordingFlow({ token }: { token: string }) {
       const ms = zoomClient.getMediaStream();
       if (isVideoMuted) {
         await ms.startVideo();
+        // Re-attaching the self-view is handled by the effect keyed on
+        // [stage, isVideoMuted] once this flips false.
         setIsVideoMuted(false);
-        setTimeout(async () => {
-          try {
-            const userId = zoomClient.getCurrentUserInfo().userId;
-            const el = await ms.attachVideo(userId, VideoQuality.Video_720P);
-            if (selfVideoRef.current) {
-              attachVideoElement(selfVideoRef.current, el as unknown as HTMLElement);
-            }
-          } catch (err) {
-            console.warn(err);
-          }
-        }, 200);
       } else {
         await ms.stopVideo();
         setIsVideoMuted(true);
@@ -341,6 +321,34 @@ export default function RecordingFlow({ token }: { token: string }) {
       console.warn(err);
     }
   };
+
+  // Attach the local self-view once we're actually on the recording screen.
+  // Attaching from startRecording via setTimeout was racy — the timeout often
+  // fired while still on the "joining" screen (before startCloudRecording
+  // resolved and setStage("recording") ran), so selfVideoRef.current was null
+  // and the feed never showed until the camera was toggled off/on. Keying off
+  // `stage` guarantees the container div is mounted before we attach, and the
+  // `isVideoMuted` dependency re-attaches when the camera is toggled back on.
+  useEffect(() => {
+    if (stage !== "recording" || isVideoMuted) return;
+    let cancelled = false;
+    const id = setTimeout(async () => {
+      try {
+        const ms = zoomClient.getMediaStream();
+        const userId = zoomClient.getCurrentUserInfo().userId;
+        const el = await ms.attachVideo(userId, VideoQuality.Video_720P);
+        if (!cancelled && selfVideoRef.current) {
+          attachVideoElement(selfVideoRef.current, el as unknown as HTMLElement);
+        }
+      } catch (err) {
+        console.warn("self attach error", err);
+      }
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
+  }, [stage, isVideoMuted]);
 
   // Cleanup on unmount
   useEffect(() => {

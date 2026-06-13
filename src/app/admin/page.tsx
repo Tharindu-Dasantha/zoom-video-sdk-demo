@@ -300,7 +300,7 @@ export default function AdminDashboard() {
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <StatusBadge status={link.status} />
 
-                      {link.recording && (
+                      {link.recording ? (
                         <a
                           href={link.recording.uploadUrl}
                           target="_blank"
@@ -315,6 +315,16 @@ export default function AdminDashboard() {
                             </span>
                           )}
                         </a>
+                      ) : (
+                        link.status === "COMPLETED" && (
+                          <span
+                            className="flex items-center gap-1.5 rounded-full bg-[#F59E0B]/10 px-3 py-1.5 text-xs font-medium text-[#F59E0B] border border-[#F59E0B]/10"
+                            title="The session has ended. Zoom is rendering the cloud recording — this can take a few minutes. Refresh to check again."
+                          >
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Recording processing…
+                          </span>
+                        )
                       )}
                     </div>
 
