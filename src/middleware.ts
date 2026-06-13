@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { resolveUrl } from "@/lib/site-url";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -8,14 +9,14 @@ export async function middleware(request: NextRequest) {
     const token = request.cookies.get("admin_token")?.value;
 
     if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(resolveUrl("/login", request));
     }
 
     try {
       const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET!);
       await jwtVerify(token, secret);
     } catch {
-      const res = NextResponse.redirect(new URL("/login", request.url));
+      const res = NextResponse.redirect(resolveUrl("/login", request));
       res.cookies.delete("admin_token");
       return res;
     }

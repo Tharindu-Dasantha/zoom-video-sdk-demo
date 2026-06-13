@@ -66,7 +66,7 @@ function ParticipantTile({ participant, isSelf, videoRef, fill }: ParticipantTil
     <div
       className={cn(
         "relative flex items-center justify-center rounded-lg bg-tl-navy-700 overflow-hidden",
-        fill ? "h-full w-full" : "aspect-video"
+        fill ? "h-full w-full" : "h-full w-full sm:aspect-video sm:h-auto"
       )}
     >
       {/* Video element container (SDK attaches video here) */}
@@ -284,14 +284,20 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
     };
   }, [inSession]);
 
-  // Grid columns based on participant count (optimized for mobile stack vs desktop grid)
+  // Grid columns based on participant count (optimized for mobile stack vs desktop grid).
+  // On mobile, `auto-rows-fr` divides the available height evenly across rows so tiles
+  // fill the screen with no leftover space and no overflow; desktop reverts to
+  // content-sized rows with aspect-video tiles.
   const getGridClass = () => {
     const count = participants.length;
-    if (count <= 1) return "grid-cols-1 h-full";
-    if (count === 2) return "grid-cols-1 sm:grid-cols-2 max-w-4xl";
-    if (count <= 4) return "grid-cols-1 sm:grid-cols-2 max-w-5xl";
-    if (count <= 6) return "grid-cols-2 sm:grid-cols-3 max-w-6xl";
-    return "grid-cols-2 sm:grid-cols-4 max-w-7xl";
+    if (count <= 1) return "grid-cols-1 auto-rows-fr h-full";
+    if (count === 2)
+      return "grid-cols-1 auto-rows-fr h-full sm:grid-cols-2 sm:auto-rows-auto sm:h-auto sm:max-w-4xl";
+    if (count <= 4)
+      return "grid-cols-1 auto-rows-fr h-full sm:grid-cols-2 sm:auto-rows-auto sm:h-auto sm:max-w-5xl";
+    if (count <= 6)
+      return "grid-cols-2 auto-rows-fr h-full sm:grid-cols-3 sm:auto-rows-auto sm:h-auto sm:max-w-6xl";
+    return "grid-cols-2 auto-rows-fr h-full sm:grid-cols-4 sm:auto-rows-auto sm:h-auto sm:max-w-7xl";
   };
 
   const currentUserId = inSession
@@ -301,14 +307,14 @@ const Videochat = (props: { slug: string; JWT: string; userName: string }) => {
   return (
     <div className="flex h-screen w-full flex-col bg-tl-navy">
       {/* Top bar */}
-      <header className="flex items-center justify-between px-4 py-2 bg-tl-navy border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <Logo size="sm" />
-          <span className="h-4 w-px bg-white/10" />
-          <span className="text-sm text-white/60 font-mono">{session}</span>
+      <header className="flex items-center justify-between gap-2 px-4 py-2 bg-tl-navy border-b border-white/10">
+        <div className="flex items-center gap-3 min-w-0">
+          <Logo size="sm" className="shrink-0" />
+          <span className="h-4 w-px bg-white/10 shrink-0" />
+          <span className="text-sm text-white/60 font-mono truncate">{session}</span>
         </div>
         {inSession && (
-          <div className="flex items-center gap-2 text-sm text-white/60">
+          <div className="flex items-center gap-2 text-sm text-white/60 shrink-0">
             <Users className="h-4 w-4" />
             <span>{participants.length}</span>
           </div>

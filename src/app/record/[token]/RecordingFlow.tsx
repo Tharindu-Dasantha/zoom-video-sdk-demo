@@ -452,7 +452,8 @@ export default function RecordingFlow({ token }: { token: string }) {
             Recording begins as soon as you join. Make sure you&apos;re in a quiet place.
           </p>
         </div>
-        <KneoxtPill />
+        {/* Hidden on mobile — on short viewports the fixed pill overlaps the device status panel */}
+        <KneoxtPill className="hidden sm:flex" />
       </div>
     );
   }
