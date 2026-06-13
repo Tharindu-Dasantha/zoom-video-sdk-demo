@@ -13,7 +13,6 @@ import {
   AlertCircle,
   Circle,
 } from "lucide-react";
-import Logo from "@/components/Logo";
 import KneoxtPill from "@/components/KneoxtPill";
 import { attachVideoElement } from "@/lib/zoom-video";
 import engageLogo from "../../../../public/engage/logo.png";
@@ -59,9 +58,10 @@ function MicMeter({ stream }: { stream: MediaStream | null }) {
       if (canvas) {
         const c = canvas.getContext("2d")!;
         c.clearRect(0, 0, canvas.width, canvas.height);
-        c.fillStyle = "#1E3A5F";
+        // Light theme: pale gray track with a green active fill.
+        c.fillStyle = "#E5E7EB";
         c.fillRect(0, 0, canvas.width, canvas.height);
-        const active = level > 0.05 ? "#10B981" : "#2A5278";
+        const active = level > 0.05 ? "#10B981" : "#D1D5DB";
         c.fillStyle = active;
         c.fillRect(0, 0, canvas.width * level, canvas.height);
       }
@@ -417,99 +417,103 @@ export default function RecordingFlow({ token }: { token: string }) {
 
   if (stage === "device-check") {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-tl-navy px-4 py-6 sm:py-10">
-        <div className="w-full max-w-lg space-y-6">
-          <Logo size="sm" className="justify-center" />
-
+      <div className="min-h-screen bg-white text-gray-900">
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
           {/* Engage Financial Solutions branding */}
-          <div className="flex flex-col items-center gap-3">
-            <div className="rounded-lg bg-white px-5 py-3">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="rounded-lg border border-gray-200 bg-white px-5 py-3 shadow-sm">
               <Image
                 src={engageLogo}
                 alt="Engage Financial Solutions"
-                className="h-8 sm:h-10 w-auto object-contain"
+                className="h-9 sm:h-11 w-auto object-contain"
               />
             </div>
-            <p className="text-center text-sm text-white/70 max-w-sm">
+            <p className="max-w-md text-sm text-gray-500">
               You&apos;re recording a video message for Engage Financial Solutions&apos;{" "}
-              <span className="text-white font-medium">25th Anniversary</span> celebration.
+              <span className="font-medium text-gray-900">25th Anniversary</span> celebration.
             </p>
           </div>
 
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold text-white">
+          <div className="mt-7 text-center sm:mt-9">
+            <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">
               Hi{recipientName ? `, ${recipientName}` : ""}! Let&apos;s get you set up
             </h1>
-            <p className="text-sm text-white/60">
+            <p className="mt-2 text-sm text-gray-500">
               Make sure your camera and microphone are working before recording.
             </p>
           </div>
 
-          {/* Camera preview */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-tl-navy-800 border border-white/[0.08]">
-            <video
-              ref={previewVideoRef}
-              autoPlay
-              muted
-              playsInline
-              className="h-full w-full object-cover scale-x-[-1]"
-            />
-            {!camOk && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <VideoOff className="h-12 w-12 text-white/30" />
-              </div>
-            )}
-          </div>
-
-          {/* Device status */}
-          <div className="rounded-lg bg-tl-navy-800 border border-white/[0.08] divide-y divide-white/10">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Video className="h-4 w-4 text-white/60" />
-                <span className="text-sm text-white">Camera</span>
-              </div>
-              {camOk ? (
-                <CheckCircle2 className="h-5 w-5 text-tl-success" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-tl-error" />
+          {/* Two columns on desktop, stacked rows on mobile */}
+          <div className="mt-8 grid gap-6 lg:mt-10 lg:grid-cols-2 lg:items-start lg:gap-10">
+            {/* Camera preview */}
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-sm">
+              <video
+                ref={previewVideoRef}
+                autoPlay
+                muted
+                playsInline
+                className="h-full w-full object-cover scale-x-[-1]"
+              />
+              {!camOk && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <VideoOff className="h-12 w-12 text-gray-300" />
+                </div>
               )}
             </div>
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Mic className="h-4 w-4 text-white/60" />
-                <span className="text-sm text-white">Microphone</span>
+
+            {/* Controls column */}
+            <div className="flex flex-col gap-5">
+              {/* Device status */}
+              <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <div className="flex items-center justify-between px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <Video className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">Camera</span>
+                  </div>
+                  {camOk ? (
+                    <CheckCircle2 className="h-5 w-5 text-tl-success" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-tl-error" />
+                  )}
+                </div>
+                <div className="flex items-center justify-between px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <Mic className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">Microphone</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {micOk && <MicMeter stream={localStream} />}
+                    {micOk ? (
+                      <CheckCircle2 className="h-5 w-5 text-tl-success" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-tl-error" />
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                {micOk && <MicMeter stream={localStream} />}
-                {micOk ? (
-                  <CheckCircle2 className="h-5 w-5 text-tl-success" />
-                ) : (
-                  <AlertCircle className="h-5 w-5 text-tl-error" />
-                )}
-              </div>
+
+              {errorMsg && (
+                <div className="rounded-lg border border-tl-error/20 bg-tl-error/5 px-4 py-3 text-sm text-tl-error">
+                  {errorMsg}
+                </div>
+              )}
+
+              <button
+                onClick={startRecording}
+                disabled={!camOk || !micOk}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-tl-blue px-6 py-4 text-base font-medium text-white transition-colors hover:bg-tl-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Circle className="h-4 w-4 fill-tl-error text-tl-error" />
+                Start Recording
+              </button>
+
+              <p className="text-center text-xs text-gray-400">
+                Recording begins as soon as you join. Make sure you&apos;re in a quiet place.
+              </p>
             </div>
           </div>
-
-          {errorMsg && (
-            <div className="rounded-lg bg-tl-error/10 border border-tl-error/20 px-4 py-3 text-sm text-tl-error">
-              {errorMsg}
-            </div>
-          )}
-
-          <button
-            onClick={startRecording}
-            disabled={!camOk || !micOk}
-            className="w-full flex items-center justify-center gap-2 rounded-sm bg-tl-blue px-6 py-4 text-base font-medium text-white hover:bg-tl-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Circle className="h-4 w-4 fill-tl-error text-tl-error" />
-            Start Recording
-          </button>
-
-          <p className="text-center text-xs text-white/30">
-            Recording begins as soon as you join. Make sure you&apos;re in a quiet place.
-          </p>
         </div>
-        {/* Hidden on mobile — on short viewports the fixed pill overlaps the device status panel */}
+        {/* Hidden on mobile — on short viewports the fixed pill overlaps the controls */}
         <KneoxtPill className="hidden sm:flex" />
       </div>
     );
