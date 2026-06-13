@@ -133,7 +133,12 @@ export async function POST(request: NextRequest) {
     console.log(`[webhook] Recording saved for ${link.recipientName}: ${uploadResult.data.url}`);
   } catch (error) {
     console.error("[webhook] Failed to process recording:", error);
-    // Still acknowledge — Zoom will not retry on 2xx
+    // Download/upload/DB failures are often transient. Return 5xx so Zoom
+    // retries delivery rather than dropping the recording on the floor.
+    return NextResponse.json(
+      { error: "Failed to process recording" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ received: true });

@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { resolveUrl } from "@/lib/site-url";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-  const response = NextResponse.redirect(resolveUrl("/login", request));
+// POST-only so a cross-site GET (e.g. an <img>/link) can't force a logout.
+// The client clears the session by calling this then redirecting to /login.
+export async function POST() {
+  const response = NextResponse.json({ success: true });
   response.cookies.delete({ name: "admin_token", path: "/" });
   return response;
 }

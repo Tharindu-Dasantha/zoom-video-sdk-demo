@@ -118,6 +118,34 @@ const Videochat = (props: {
   // Track video element refs per user
   const videoRefsMap = useRef<Map<number, HTMLDivElement>>(new Map());
   const selfVideoRef = useRef<HTMLDivElement | null>(null);
+  // Mirror of inSession for unload handlers (avoids stale closures).
+  const inSessionRef = useRef(false);
+  useEffect(() => {
+    inSessionRef.current = inSession;
+  }, [inSession]);
+
+  // Mark the meeting code as ended so the link dies once the host leaves.
+  // sendBeacon survives tab close / navigation where a normal fetch would be
+  // cancelled. Only the host ends the meeting, and only while actually in it.
+  const markMeetingEnded = useCallback(() => {
+    if (!isHost || !inSessionRef.current) return;
+    try {
+      const blob = new Blob([JSON.stringify({ code: session })], {
+        type: "application/json",
+      });
+      navigator.sendBeacon("/api/meeting/end", blob);
+    } catch {
+      // best-effort
+    }
+  }, [isHost, session]);
+
+  // If the host closes the tab without clicking "Leave", still end the meeting.
+  useEffect(() => {
+    if (!isHost) return;
+    const handler = () => markMeetingEnded();
+    window.addEventListener("pagehide", handler);
+    return () => window.removeEventListener("pagehide", handler);
+  }, [isHost, markMeetingEnded]);
 
   const refreshParticipants = useCallback(() => {
     try {
@@ -208,7 +236,18 @@ const Videochat = (props: {
 
       await client.join(session, jwt, userName);
       setInSession(true);
+      inSessionRef.current = true;
       refreshParticipants();
+
+      // The host starting (re)activates the code: clear any prior "ended"
+      // marker so invitees who open the link can join this fresh session.
+      if (isHost) {
+        fetch("/api/meeting/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: session }),
+        }).catch(() => {});
+      }
 
       const mediaStream = client.getMediaStream();
 
@@ -290,8 +329,9 @@ const Videochat = (props: {
       client.off("user-removed", handleUserChange);
       client.off("user-updated", handleUserChange);
       client.off("connection-change", handleConnectionChange);
-      // Host leaving ends the session for all participants; a participant
-      // leaving only removes themselves.
+      // Host leaving ends the session for all participants and kills the link;
+      // a participant leaving only removes themselves.
+      markMeetingEnded();
       await client.leave(isHost);
     } catch (e) {
       console.warn("Error leaving session:", e instanceof Error ? e.message : String(e));
@@ -304,10 +344,11 @@ const Videochat = (props: {
   useEffect(() => {
     return () => {
       if (inSession) {
+        markMeetingEnded();
         client.leave(isHost).catch(() => {});
       }
     };
-  }, [inSession, isHost]);
+  }, [inSession, isHost, markMeetingEnded]);
 
   // Grid columns based on participant count (optimized for mobile stack vs desktop grid).
   // On mobile, `auto-rows-fr` divides the available height evenly across rows so tiles

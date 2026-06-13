@@ -36,3 +36,12 @@ model AdminUser {
   password  String
   createdAt DateTime @default(now())
 }
+
+// Records meeting codes whose host has left. A code listed here is "dead":
+// participants opening the link see an "ended" screen instead of joining a
+// fresh empty room. The host reactivates a code simply by starting it again
+// (the row is removed on host join). No meeting content is ever stored.
+model EndedMeeting {
+  code    String   @id
+  endedAt DateTime @default(now())
+}

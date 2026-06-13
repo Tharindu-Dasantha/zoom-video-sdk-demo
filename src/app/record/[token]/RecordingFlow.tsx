@@ -226,14 +226,32 @@ export default function RecordingFlow({ token }: { token: string }) {
         }
       }, 400);
 
-      // Start cloud recording
+      // Start cloud recording. This is the entire point of the session, so a
+      // failure here must NOT silently continue — otherwise the attendee would
+      // record, press Done, the link would be marked COMPLETED, and the admin
+      // would be left with a completed link and no video. Surface the error and
+      // bail; the link stays IN_PROGRESS (re-enterable) so they can refresh and
+      // retry.
       try {
         const recordingClient = zoomClient.getRecordingClient();
         await recordingClient.startCloudRecording();
         setRecordingStarted(true);
       } catch (recErr) {
-        console.warn("Cloud recording start failed:", recErr);
-        // Continue even if recording fails to start — user can still record
+        console.error("Cloud recording start failed:", recErr);
+        if (peerVideoHandlerRef.current) {
+          zoomClient.off("peer-video-state-change", peerVideoHandlerRef.current);
+          peerVideoHandlerRef.current = null;
+        }
+        try {
+          await zoomClient.leave();
+        } catch {
+          // ignore teardown errors
+        }
+        setErrorMsg(
+          "We couldn't start the recording. Please refresh the page and try again."
+        );
+        setStage("error");
+        return;
       }
 
       // Start elapsed timer

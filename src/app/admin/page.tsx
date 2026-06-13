@@ -17,6 +17,7 @@ import {
   Users,
   CheckCircle2,
   CircleDot,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,6 +107,14 @@ export default function AdminDashboard() {
   const getRecordingUrl = (token: string) =>
     `${window.location.origin}/record/${token}`;
 
+  const logout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+    } finally {
+      window.location.href = "/login";
+    }
+  };
+
   const copyLink = async (token: string, id: string) => {
     await navigator.clipboard.writeText(getRecordingUrl(token));
     setCopiedId(id);
@@ -165,13 +174,13 @@ export default function AdminDashboard() {
               Admin
             </span>
           </div>
-          <a
-            href="/api/admin/logout"
+          <button
+            onClick={logout}
             className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-white/10 bg-white/[0.02] hover:bg-white/[0.06] px-3.5 py-2 text-xs sm:text-sm text-white/80 hover:text-white transition-all duration-150 ease-out active:scale-[0.98]"
           >
             <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             Logout
-          </a>
+          </button>
         </div>
       </header>
 
@@ -371,15 +380,25 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                   </div>
-                  <a
-                    href={link.recording!.uploadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-1.5 rounded-lg bg-[#13A983] px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-tl-blue-700 shadow-md shadow-[#13A983]/15 hover:scale-[1.02] active:scale-[0.98] transition-all w-full sm:w-auto text-center"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Open Video
-                  </a>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <a
+                      href={link.recording!.uploadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 rounded-lg bg-[#13A983] px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-tl-blue-700 shadow-md shadow-[#13A983]/15 hover:scale-[1.02] active:scale-[0.98] transition-all flex-1 sm:flex-none text-center"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open Video
+                    </a>
+                    <a
+                      href={`/api/admin/recordings/${link.recording!.id}/download`}
+                      className="flex items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.02] hover:bg-white/[0.06] px-4 py-2 text-xs sm:text-sm font-semibold text-white/80 hover:text-white transition-all active:scale-[0.98] text-center"
+                      title="Download recording"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download
+                    </a>
+                  </div>
                 </div>
               ))}
             </div>

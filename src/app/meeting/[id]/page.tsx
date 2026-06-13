@@ -1,4 +1,5 @@
 import { getData } from "@/data/getToken";
+import { prisma } from "@/lib/db";
 import VideochatClientWrapper from "@/components/VideochatClientWrapper";
 import Logo from "@/components/Logo";
 import Link from "next/link";
@@ -15,6 +16,38 @@ export default async function Page(props: {
   // Zoom host; invitees open a plain link and join as participants. When the
   // host leaves they end the session for everyone.
   const isHost = searchParams.host === "1";
+
+  // Once the host has left, the meeting is dead: participants opening the link
+  // get this screen instead of spinning up a fresh empty room. The host bypasses
+  // the check so they can restart the same code (which clears the marker on join).
+  if (!isHost) {
+    const ended = await prisma.endedMeeting.findUnique({
+      where: { code: params.id },
+    });
+    if (ended) {
+      return (
+        <main className="flex min-h-screen flex-col items-center justify-center bg-tl-navy p-6">
+          <div className="max-w-md w-full space-y-6 text-center">
+            <Logo size="md" className="justify-center" />
+            <div className="rounded-lg bg-tl-navy-800 border border-white/[0.08] p-8 shadow-xl">
+              <h1 className="text-lg font-semibold text-white mb-3">
+                This meeting has ended
+              </h1>
+              <p className="text-sm text-white/60 mb-4">
+                The host has left and this link is no longer active.
+              </p>
+              <Link
+                href="/"
+                className="inline-flex items-center text-sm font-medium text-tl-blue hover:underline"
+              >
+                ← Back to home
+              </Link>
+            </div>
+          </div>
+        </main>
+      );
+    }
+  }
 
   let jwt: string;
   try {
