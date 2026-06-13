@@ -417,36 +417,36 @@ export default function RecordingFlow({ token }: { token: string }) {
 
   if (stage === "device-check") {
     return (
-      <div className="min-h-screen bg-white text-gray-900">
-        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <div className="flex min-h-screen flex-col bg-white text-gray-900">
+        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
           {/* Engage Financial Solutions branding */}
-          <div className="flex flex-col items-center gap-3 text-center">
-            <div className="rounded-lg border border-gray-200 bg-white px-5 py-3 shadow-sm">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm">
               <Image
                 src={engageLogo}
                 alt="Engage Financial Solutions"
-                className="h-9 sm:h-11 w-auto object-contain"
+                className="h-10 sm:h-14 w-auto object-contain"
               />
             </div>
-            <p className="max-w-md text-sm text-gray-500">
+            <p className="max-w-lg text-base text-gray-500 sm:text-lg">
               You&apos;re recording a video message for Engage Financial Solutions&apos;{" "}
               <span className="font-medium text-gray-900">25th Anniversary</span> celebration.
             </p>
           </div>
 
-          <div className="mt-7 text-center sm:mt-9">
-            <h1 className="text-2xl font-semibold text-gray-900 sm:text-3xl">
+          <div className="mt-8 text-center sm:mt-10">
+            <h1 className="text-3xl font-semibold text-gray-900 sm:text-4xl">
               Hi{recipientName ? `, ${recipientName}` : ""}! Let&apos;s get you set up
             </h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-3 text-base text-gray-500 sm:text-lg">
               Make sure your camera and microphone are working before recording.
             </p>
           </div>
 
           {/* Two columns on desktop, stacked rows on mobile */}
-          <div className="mt-8 grid gap-6 lg:mt-10 lg:grid-cols-2 lg:items-start lg:gap-10">
+          <div className="mt-10 grid gap-8 lg:mt-14 lg:grid-cols-5 lg:items-stretch lg:gap-12">
             {/* Camera preview */}
-            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-sm">
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-sm lg:col-span-3">
               <video
                 ref={previewVideoRef}
                 autoPlay
@@ -456,37 +456,37 @@ export default function RecordingFlow({ token }: { token: string }) {
               />
               {!camOk && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <VideoOff className="h-12 w-12 text-gray-300" />
+                  <VideoOff className="h-16 w-16 text-gray-300" />
                 </div>
               )}
             </div>
 
             {/* Controls column */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col justify-center gap-6 lg:col-span-2">
               {/* Device status */}
               <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-white shadow-sm">
-                <div className="flex items-center justify-between px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <Video className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">Camera</span>
+                <div className="flex items-center justify-between px-6 py-5">
+                  <div className="flex items-center gap-3.5">
+                    <Video className="h-5 w-5 text-gray-400" />
+                    <span className="text-base font-medium text-gray-700">Camera</span>
                   </div>
                   {camOk ? (
-                    <CheckCircle2 className="h-5 w-5 text-tl-success" />
+                    <CheckCircle2 className="h-6 w-6 text-tl-success" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 text-tl-error" />
+                    <AlertCircle className="h-6 w-6 text-tl-error" />
                   )}
                 </div>
-                <div className="flex items-center justify-between px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <Mic className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">Microphone</span>
+                <div className="flex items-center justify-between px-6 py-5">
+                  <div className="flex items-center gap-3.5">
+                    <Mic className="h-5 w-5 text-gray-400" />
+                    <span className="text-base font-medium text-gray-700">Microphone</span>
                   </div>
                   <div className="flex items-center gap-3">
                     {micOk && <MicMeter stream={localStream} />}
                     {micOk ? (
-                      <CheckCircle2 className="h-5 w-5 text-tl-success" />
+                      <CheckCircle2 className="h-6 w-6 text-tl-success" />
                     ) : (
-                      <AlertCircle className="h-5 w-5 text-tl-error" />
+                      <AlertCircle className="h-6 w-6 text-tl-error" />
                     )}
                   </div>
                 </div>
@@ -501,13 +501,13 @@ export default function RecordingFlow({ token }: { token: string }) {
               <button
                 onClick={startRecording}
                 disabled={!camOk || !micOk}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-tl-blue px-6 py-4 text-base font-medium text-white transition-colors hover:bg-tl-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-tl-blue px-6 py-5 text-lg font-medium text-white transition-colors hover:bg-tl-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <Circle className="h-4 w-4 fill-tl-error text-tl-error" />
+                <Circle className="h-5 w-5 fill-tl-error text-tl-error" />
                 Start Recording
               </button>
 
-              <p className="text-center text-xs text-gray-400">
+              <p className="text-center text-sm text-gray-400">
                 Recording begins as soon as you join. Make sure you&apos;re in a quiet place.
               </p>
             </div>
