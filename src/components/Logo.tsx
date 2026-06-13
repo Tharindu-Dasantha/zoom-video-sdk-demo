@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import logoImg from "../../public/Logo/logo.png";
+import Link from "next/link";
 
 const SIZES = {
   sm: "h-5 sm:h-6",
@@ -16,7 +17,7 @@ interface LogoProps {
 
 export default function Logo({ size = "sm", className }: LogoProps) {
   return (
-    <span className={cn("inline-flex items-center gap-2 select-none", className)}>
+    <Link href="/" className={cn("inline-flex items-center gap-2 select-none", className)}>
       <Image
         src={logoImg}
         alt="tenon-Link Connect"
@@ -32,6 +33,6 @@ export default function Logo({ size = "sm", className }: LogoProps) {
       )}>
         Connect
       </div>
-    </span>
+    </Link>
   );
 }
